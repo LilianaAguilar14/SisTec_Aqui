@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   BarChart3,
   ClipboardList,
@@ -17,10 +17,20 @@ import {
   Ticket,
   Truck,
   Users,
-} from "lucide-react"
+} from "lucide-react";
+import Cookies from "js-cookie"; // Importa js-cookie
 
 export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
-  const pathname = usePathname()
+  const pathname = usePathname();
+
+  const handleLogout = () => {
+    // Elimina las cookies
+    Cookies.remove("token");
+    Cookies.remove("user");
+
+    // Redirige al usuario a la página de inicio de sesión
+    window.location.href = "/login";
+  };
 
   return (
     <div className={cn("pb-12", className)}>
@@ -42,7 +52,9 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
 
         {/* Sección Dashboard */}
         <div className="px-4 py-2">
-          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">Dashboard</h2>
+          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
+            Dashboard
+          </h2>
           <div className="space-y-1">
             <Link href="/estadisticas">
               <Button
@@ -76,7 +88,9 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
 
         {/* Sección Inventario */}
         <div className="px-4 py-2">
-          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">Inventario</h2>
+          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
+            Inventario
+          </h2>
           <div className="space-y-1">
             <Link href="/componentes">
               <Button
@@ -110,7 +124,9 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
 
         {/* Sección Administración */}
         <div className="px-4 py-2">
-          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">Administración</h2>
+          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
+            Administración
+          </h2>
           <div className="space-y-1">
             <Link href="/usuarios">
               <Button
@@ -136,11 +152,15 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
 
       {/* Botón de Cerrar sesión */}
       <div className="mt-auto px-4 py-2">
-        <Button variant="ghost" className="w-full justify-start text-muted-foreground">
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-muted-foreground"
+          onClick={handleLogout}
+        >
           <LogOut className="mr-2 h-4 w-4" />
           Cerrar sesión
         </Button>
       </div>
     </div>
-  )
+  );
 }

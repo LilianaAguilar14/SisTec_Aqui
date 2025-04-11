@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
+import Cookies from "js-cookie"; // Importa js-cookie
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -27,12 +28,6 @@ export default function LoginPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
-  };
-
-  const setCookie = (name: string, value: string, days: number) => {
-    const date = new Date();
-    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-    document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,9 +42,9 @@ export default function LoginPage() {
 
       const { accessToken, user } = response.data;
 
-      // Guarda el token y el usuario en cookies
-      setCookie("token", accessToken, 7); // Expira en 7 días
-      setCookie("user", JSON.stringify(user), 7); // Guarda el usuario como string JSON
+      // Guarda el token y el usuario completo en cookies
+      Cookies.set("token", accessToken, { expires: 7 }); // Expira en 7 días
+      Cookies.set("user", JSON.stringify(user), { expires: 7 }); // Guarda el usuario como string JSON
 
       // Redirige al dashboard o página principal
       router.push("/componentes");
@@ -57,6 +52,9 @@ export default function LoginPage() {
       setError(err.response?.data?.message || "Error al iniciar sesión");
     }
   };
+
+  const user = JSON.parse(Cookies.get("user") || "{}");
+  console.log(user);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-blue-50 dark:bg-blue-950/20 relative">
