@@ -1,11 +1,26 @@
-import { SiteHeader } from "@/components/site-header"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowRight, CheckCircle, ClipboardList, Cpu, Laptop, Settings, Star, Ticket } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
+import { SiteHeader } from "@/components/site-header";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  ArrowRight,
+  CheckCircle,
+  ClipboardList,
+  Cpu,
+  Laptop,
+  Settings,
+  Star,
+  Ticket,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -23,8 +38,8 @@ export default function Home() {
                   Creamos valor para tu negocio
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                  Soluciones tecnológicas integrales para la gestión de tickets, reparaciones y mantenimiento de
-                  equipos.
+                  Soluciones tecnológicas integrales para la gestión de tickets,
+                  reparaciones y mantenimiento de equipos.
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -55,6 +70,5 @@ export default function Home() {
         </div>
       </section>
     </div>
-  )
+  );
 }
-

@@ -1,9 +1,24 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CheckCircle, Clock, ClipboardList, Cpu, Laptop, Ticket, Truck, XCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { ChartContainer } from "@/components/ui/chart"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  CheckCircle,
+  Clock,
+  ClipboardList,
+  Cpu,
+  Laptop,
+  Ticket,
+  Truck,
+  XCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ChartContainer } from "@/components/ui/chart";
 import {
   Bar,
   BarChart as RechartsBarChart,
@@ -14,9 +29,9 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "recharts"
+} from "recharts";
 
-export default function DashboardPage() {
+export default function EstadisticasPage() {
   // Datos de ejemplo para los gráficos
   const ticketData = [
     { name: "Ene", abiertos: 40, cerrados: 24 },
@@ -25,7 +40,7 @@ export default function DashboardPage() {
     { name: "Abr", abiertos: 27, cerrados: 20 },
     { name: "May", abiertos: 18, cerrados: 19 },
     { name: "Jun", abiertos: 23, cerrados: 25 },
-  ]
+  ];
 
   const componentesData = [
     { name: "Ene", entradas: 65, salidas: 42 },
@@ -34,7 +49,7 @@ export default function DashboardPage() {
     { name: "Abr", entradas: 45, salidas: 42 },
     { name: "May", entradas: 60, salidas: 45 },
     { name: "Jun", entradas: 70, salidas: 55 },
-  ]
+  ];
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -59,42 +74,58 @@ export default function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tickets Activos</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Tickets Activos
+                </CardTitle>
                 <Ticket className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">23</div>
-                <p className="text-xs text-muted-foreground">+5% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">
+                  +5% desde el mes pasado
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Reparaciones Completadas</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Reparaciones Completadas
+                </CardTitle>
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">145</div>
-                <p className="text-xs text-muted-foreground">+12% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">
+                  +12% desde el mes pasado
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Componentes en Stock</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Componentes en Stock
+                </CardTitle>
                 <Cpu className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">1,203</div>
-                <p className="text-xs text-muted-foreground">+18% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">
+                  +18% desde el mes pasado
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tiempo Promedio de Reparación</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Tiempo Promedio de Reparación
+                </CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">3.2 días</div>
-                <p className="text-xs text-muted-foreground">-8% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">
+                  -8% desde el mes pasado
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -102,7 +133,9 @@ export default function DashboardPage() {
             <Card className="col-span-4">
               <CardHeader>
                 <CardTitle>Tickets por Mes</CardTitle>
-                <CardDescription>Comparativa de tickets abiertos vs cerrados</CardDescription>
+                <CardDescription>
+                  Comparativa de tickets abiertos vs cerrados
+                </CardDescription>
               </CardHeader>
               <CardContent className="pl-2">
                 <ChartContainer
@@ -124,8 +157,16 @@ export default function DashboardPage() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="abiertos" fill="var(--color-abiertos)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="cerrados" fill="var(--color-cerrados)" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="abiertos"
+                      fill="var(--color-abiertos)"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                      dataKey="cerrados"
+                      fill="var(--color-cerrados)"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </RechartsBarChart>
                 </ChartContainer>
               </CardContent>
@@ -133,14 +174,20 @@ export default function DashboardPage() {
             <Card className="col-span-3">
               <CardHeader>
                 <CardTitle>Tickets Recientes</CardTitle>
-                <CardDescription>Últimos tickets registrados en el sistema</CardDescription>
+                <CardDescription>
+                  Últimos tickets registrados en el sistema
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-8">
                   <div className="flex items-center">
                     <div className="mr-4 space-y-1">
-                      <p className="text-sm font-medium leading-none">Laptop Dell XPS - Pantalla dañada</p>
-                      <p className="text-sm text-muted-foreground">Juan Pérez • Hace 2 horas</p>
+                      <p className="text-sm font-medium leading-none">
+                        Laptop Dell XPS - Pantalla dañada
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Juan Pérez • Hace 2 horas
+                      </p>
                     </div>
                     <div className="ml-auto font-medium">
                       <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-yellow-100 text-yellow-800 border-yellow-200">
@@ -150,8 +197,12 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center">
                     <div className="mr-4 space-y-1">
-                      <p className="text-sm font-medium leading-none">Impresora HP - No imprime</p>
-                      <p className="text-sm text-muted-foreground">María González • Hace 5 horas</p>
+                      <p className="text-sm font-medium leading-none">
+                        Impresora HP - No imprime
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        María González • Hace 5 horas
+                      </p>
                     </div>
                     <div className="ml-auto font-medium">
                       <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-800 border-red-200">
@@ -161,8 +212,12 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center">
                     <div className="mr-4 space-y-1">
-                      <p className="text-sm font-medium leading-none">PC de Escritorio - No enciende</p>
-                      <p className="text-sm text-muted-foreground">Carlos Rodríguez • Hace 1 día</p>
+                      <p className="text-sm font-medium leading-none">
+                        PC de Escritorio - No enciende
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Carlos Rodríguez • Hace 1 día
+                      </p>
                     </div>
                     <div className="ml-auto font-medium">
                       <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-green-100 text-green-800 border-green-200">
@@ -172,8 +227,12 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center">
                     <div className="mr-4 space-y-1">
-                      <p className="text-sm font-medium leading-none">Monitor Samsung - Líneas en pantalla</p>
-                      <p className="text-sm text-muted-foreground">Ana Martínez • Hace 2 días</p>
+                      <p className="text-sm font-medium leading-none">
+                        Monitor Samsung - Líneas en pantalla
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Ana Martínez • Hace 2 días
+                      </p>
                     </div>
                     <div className="ml-auto font-medium">
                       <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-green-100 text-green-800 border-green-200">
@@ -190,49 +249,67 @@ export default function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total de Tickets</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total de Tickets
+                </CardTitle>
                 <Ticket className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">245</div>
-                <p className="text-xs text-muted-foreground">+8% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">
+                  +8% desde el mes pasado
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tickets Pendientes</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Tickets Pendientes
+                </CardTitle>
                 <XCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">15</div>
-                <p className="text-xs text-muted-foreground">-2% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">
+                  -2% desde el mes pasado
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tickets en Proceso</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Tickets en Proceso
+                </CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">8</div>
-                <p className="text-xs text-muted-foreground">+3% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">
+                  +3% desde el mes pasado
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tickets Completados</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Tickets Completados
+                </CardTitle>
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">222</div>
-                <p className="text-xs text-muted-foreground">+15% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">
+                  +15% desde el mes pasado
+                </p>
               </CardContent>
             </Card>
           </div>
           <Card>
             <CardHeader>
               <CardTitle>Tendencia de Tickets</CardTitle>
-              <CardDescription>Evolución de tickets en los últimos 6 meses</CardDescription>
+              <CardDescription>
+                Evolución de tickets en los últimos 6 meses
+              </CardDescription>
             </CardHeader>
             <CardContent className="pl-2">
               <ChartContainer
@@ -254,8 +331,18 @@ export default function DashboardPage() {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="abiertos" stroke="var(--color-abiertos)" strokeWidth={2} />
-                  <Line type="monotone" dataKey="cerrados" stroke="var(--color-cerrados)" strokeWidth={2} />
+                  <Line
+                    type="monotone"
+                    dataKey="abiertos"
+                    stroke="var(--color-abiertos)"
+                    strokeWidth={2}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="cerrados"
+                    stroke="var(--color-cerrados)"
+                    strokeWidth={2}
+                  />
                 </LineChart>
               </ChartContainer>
             </CardContent>
@@ -265,49 +352,67 @@ export default function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total de Componentes</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total de Componentes
+                </CardTitle>
                 <Cpu className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">1,203</div>
-                <p className="text-xs text-muted-foreground">+18% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">
+                  +18% desde el mes pasado
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Componentes Usados</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Componentes Usados
+                </CardTitle>
                 <ClipboardList className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">324</div>
-                <p className="text-xs text-muted-foreground">+5% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">
+                  +5% desde el mes pasado
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Proveedores Activos</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Proveedores Activos
+                </CardTitle>
                 <Truck className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">12</div>
-                <p className="text-xs text-muted-foreground">+1 desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">
+                  +1 desde el mes pasado
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Dispositivos Registrados</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Dispositivos Registrados
+                </CardTitle>
                 <Laptop className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">187</div>
-                <p className="text-xs text-muted-foreground">+7% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">
+                  +7% desde el mes pasado
+                </p>
               </CardContent>
             </Card>
           </div>
           <Card>
             <CardHeader>
               <CardTitle>Movimiento de Componentes</CardTitle>
-              <CardDescription>Entradas y salidas de componentes en los últimos 6 meses</CardDescription>
+              <CardDescription>
+                Entradas y salidas de componentes en los últimos 6 meses
+              </CardDescription>
             </CardHeader>
             <CardContent className="pl-2">
               <ChartContainer
@@ -329,8 +434,16 @@ export default function DashboardPage() {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="entradas" fill="var(--color-entradas)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="salidas" fill="var(--color-salidas)" radius={[4, 4, 0, 0]} />
+                  <Bar
+                    dataKey="entradas"
+                    fill="var(--color-entradas)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="salidas"
+                    fill="var(--color-salidas)"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </RechartsBarChart>
               </ChartContainer>
             </CardContent>
@@ -338,5 +451,5 @@ export default function DashboardPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
