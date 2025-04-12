@@ -21,7 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Laptop, Monitor, Plus, Printer, Search, Server } from "lucide-react";
 import Link from "next/link";
-import axios from "axios";
+import axios from "../../axiosConfig";
 
 interface Dispositivo {
   dispositivo_id: number;
@@ -43,14 +43,13 @@ interface Dispositivo {
 export default function DispositivosPage() {
   const [dispositivos, setDispositivos] = useState<Dispositivo[]>([]); // Lista de dispositivos
   const [error, setError] = useState("");
+  const [categorias, setCategorias] = useState<any[]>([]); // Lista de categorías
 
   // Obtener la lista de dispositivos al cargar la página
   useEffect(() => {
     const fetchDispositivos = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:3000/tipo-dispositivo"
-        ); // Cambia la URL según tu backend
+        const response = await axios.get("/tipo-dispositivo"); // Cambia la URL según tu backend
         setDispositivos(response.data); // Asume que el backend devuelve un array de dispositivos
       } catch (err) {
         setError("Error al obtener los dispositivos");
@@ -61,12 +60,41 @@ export default function DispositivosPage() {
     fetchDispositivos();
   }, []);
 
-  // Datos estáticos para las cards
-  const totalDispositivos = 50;
-  const laptops = 20;
-  const desktops = 15;
-  const impresoras = 10;
-  const enReparacion = 5;
+  // Obtener datos de dispositivos por categoría
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/tipo-dispositivo/por-categoria"
+        );
+        setCategorias(response.data); // Asume que el backend devuelve un array de categorías
+      } catch (err) {
+        setError("Error al obtener las categorías");
+        console.error("Error al obtener las categorías:", err);
+      }
+    };
+
+    fetchCategorias();
+  }, []);
+
+  // Iconos para las categorías
+  const iconosCategoria = {
+    Laptop: <Laptop className="h-4 w-4 text-muted-foreground" />,
+    Computadora: <Server className="h-4 w-4 text-muted-foreground" />,
+    Impresora: <Printer className="h-4 w-4 text-muted-foreground" />,
+    Tablet: <Monitor className="h-4 w-4 text-muted-foreground" />,
+  };
+
+  // Calcular totales por categoría
+  const totalDispositivos = categorias.reduce((acc, cat) => acc + cat.total, 0);
+  const laptops =
+    categorias.find((cat) => cat.categoria === "Laptop")?.total || 0;
+  const desktops =
+    categorias.find((cat) => cat.categoria === "Computadora")?.total || 0;
+  const impresoras =
+    categorias.find((cat) => cat.categoria === "Impresora")?.total || 0;
+  const enReparacion =
+    categorias.find((cat) => cat.categoria === "Tablet")?.total || 0;
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -91,9 +119,7 @@ export default function DispositivosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalDispositivos}</div>
-            <p className="text-xs text-muted-foreground">
-              +5 desde el mes pasado
-            </p>
+            <hr className="my-2" />
           </CardContent>
         </Card>
         <Card>
@@ -103,9 +129,7 @@ export default function DispositivosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{laptops}</div>
-            <p className="text-xs text-muted-foreground">
-              +2 desde el mes pasado
-            </p>
+            <hr className="my-2" />
           </CardContent>
         </Card>
         <Card>
@@ -115,9 +139,7 @@ export default function DispositivosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{desktops}</div>
-            <p className="text-xs text-muted-foreground">
-              +1 desde el mes pasado
-            </p>
+            <hr className="my-2" />
           </CardContent>
         </Card>
         <Card>
@@ -127,21 +149,17 @@ export default function DispositivosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{impresoras}</div>
-            <p className="text-xs text-muted-foreground">
-              +0 desde el mes pasado
-            </p>
+            <hr className="my-2" />
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">En Reparación</CardTitle>
+            <CardTitle className="text-sm font-medium">Tablet</CardTitle>
             <Monitor className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{enReparacion}</div>
-            <p className="text-xs text-muted-foreground">
-              +1 desde el mes pasado
-            </p>
+            <hr className="my-2" />
           </CardContent>
         </Card>
       </div>

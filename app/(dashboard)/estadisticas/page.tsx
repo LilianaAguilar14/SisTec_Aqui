@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useState, useEffect } from "react";
 import {
   BarChart3,
   Clock,
@@ -17,8 +20,45 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import axios from "../../axiosConfig";
 
 export default function Dashboard() {
+  const [ticketsActivos, setTicketsActivos] = useState(0); // Estado para los tickets activos
+  const [ticketsCerrados, setTicketsCerrados] = useState(0); // Estado para los tickets cerrados
+  const [componentesEnStock, setComponentesEnStock] = useState(0); // Estado para los componentes en stock
+
+  // Obtener el conteo de tickets activos y cerrados
+  useEffect(() => {
+    const fetchTicketsActivos = async () => {
+      try {
+        const response = await axios.get("/ticket/conteo-estado");
+        setTicketsActivos(response.data.activos);
+        setTicketsCerrados(response.data.inactivos);
+      } catch (err) {
+        console.error("Error al obtener el conteo de tickets:", err);
+      }
+    };
+
+    fetchTicketsActivos();
+  }, []);
+
+  // Obtener el total de componentes en stock
+  useEffect(() => {
+    const fetchComponentesEnStock = async () => {
+      try {
+        const response = await axios.get("/componente/total-componentes");
+        setComponentesEnStock(response.data.total); // Actualiza el estado con el valor de "total"
+      } catch (err) {
+        console.error(
+          "Error al obtener el total de componentes en stock:",
+          err
+        );
+      }
+    };
+
+    fetchComponentesEnStock();
+  }, []);
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Main Content */}
@@ -33,10 +73,7 @@ export default function Dashboard() {
                 <Ticket className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">23</div>
-                <p className="text-xs text-green-600 mt-1">
-                  +5% desde el mes pasado
-                </p>
+                <div className="text-3xl font-bold">{ticketsActivos}</div>
               </CardContent>
             </Card>
 
@@ -48,10 +85,7 @@ export default function Dashboard() {
                 <Tool className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">145</div>
-                <p className="text-xs text-green-600 mt-1">
-                  +12% desde el mes pasado
-                </p>
+                <div className="text-3xl font-bold">{ticketsCerrados}</div>
               </CardContent>
             </Card>
 
@@ -63,25 +97,7 @@ export default function Dashboard() {
                 <Package className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">1,203</div>
-                <p className="text-xs text-green-600 mt-1">
-                  +18% desde el mes pasado
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Tiempo Promedio de Reparación
-                </CardTitle>
-                <Clock className="h-4 w-4 text-gray-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">3.2 días</div>
-                <p className="text-xs text-red-600 mt-1">
-                  -8% desde el mes pasado
-                </p>
+                <div className="text-3xl font-bold">{componentesEnStock}</div>
               </CardContent>
             </Card>
           </div>

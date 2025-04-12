@@ -19,54 +19,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import axios from "../../../axiosConfig";
 
-export default function NuevoDispositivoPage() {
+export default function NuevoComponentePage() {
   const [formData, setFormData] = useState({
     nombre: "",
-    tipo: "",
-    marca_modelo: "",
-    descripcion: "",
-    usuarioAsignado: {
-      usuario_id: "", // ID del usuario asignado
+    precio: "",
+    cantidad: "",
+    proveedor: {
+      proveedor_id: "", // ID del proveedor
     },
   });
 
-  const [usuarios, setUsuarios] = useState([]); // Lista de usuarios
+  const [proveedores, setProveedores] = useState([]); // Lista de proveedores
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // Obtener la lista de usuarios al cargar la página
+  // Obtener la lista de proveedores al cargar la página
   useEffect(() => {
-    const fetchUsuarios = async () => {
+    const fetchProveedores = async () => {
       try {
-        const response = await axios.get("/usuarios"); // Cambia la URL según tu backend
-        setUsuarios(response.data); // Asume que el backend devuelve un array de usuarios
+        const response = await axios.get("/proveedor"); // Cambia la URL según tu backend
+        setProveedores(response.data); // Asume que el backend devuelve un array de proveedores
       } catch (err) {
-        console.error("Error al obtener los usuarios:", err);
+        console.error("Error al obtener los proveedores:", err);
       }
     };
 
-    fetchUsuarios();
+    fetchProveedores();
   }, []);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const handleSelectChange = (value: string) => {
-    setFormData({ ...formData, tipo: value });
-  };
-
-  const handleUsuarioChange = (value: string) => {
+  const handleProveedorChange = (value: string) => {
     setFormData({
       ...formData,
-      usuarioAsignado: { usuario_id: value },
+      proveedor: { proveedor_id: value },
     });
   };
 
@@ -76,20 +68,26 @@ export default function NuevoDispositivoPage() {
     setSuccess(false);
 
     try {
-      const response = await axios.post("/tipo-dispositivo", formData);
+      const response = await axios.post(
+        "/componente", // URL del endpoint
+        {
+          ...formData,
+          precio: parseFloat(formData.precio), // Asegurarse de enviar el precio como número
+          cantidad: parseInt(formData.cantidad, 10), // Asegurarse de enviar la cantidad como número
+        }
+      );
       setSuccess(true);
       setFormData({
         nombre: "",
-        tipo: "",
-        marca_modelo: "",
-        descripcion: "",
-        usuarioAsignado: {
-          usuario_id: "",
+        precio: "",
+        cantidad: "",
+        proveedor: {
+          proveedor_id: "",
         },
       });
     } catch (err: any) {
       setError(
-        err.response?.data?.message || "Error al registrar el dispositivo"
+        err.response?.data?.message || "Error al registrar el componente"
       );
     }
   };
@@ -98,73 +96,72 @@ export default function NuevoDispositivoPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <div className="flex items-center gap-2">
-          <Link href="/dispositivos">
+          <Link href="/componentes">
             <Button variant="outline" size="icon" className="h-8 w-8">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
           <h2 className="text-3xl font-bold tracking-tight">
-            Nuevo Dispositivo
+            Nuevo Componente
           </h2>
         </div>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Información del Dispositivo</CardTitle>
+          <CardTitle>Información del Componente</CardTitle>
           <CardDescription>
-            Ingresa los detalles del nuevo dispositivo a registrar en el sistema
+            Ingresa los detalles del nuevo componente a registrar en el sistema
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="nombre">Nombre del Dispositivo</Label>
+                <Label htmlFor="nombre">Nombre del Componente</Label>
                 <Input
                   id="nombre"
-                  placeholder="Ej: Dell XPS 15"
+                  placeholder="Ej: Memoria RAM"
                   value={formData.nombre}
                   onChange={handleChange}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tipo">Tipo de Dispositivo</Label>
-                <Select onValueChange={handleSelectChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Laptop">Laptop</SelectItem>
-                    <SelectItem value="Desktop">Desktop</SelectItem>
-                    <SelectItem value="Impresora">Impresora</SelectItem>
-                    <SelectItem value="Tablet">Tablet</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="marca_modelo">Marca y Modelo</Label>
+                <Label htmlFor="precio">Precio</Label>
                 <Input
-                  id="marca_modelo"
-                  placeholder="Ej: Dell XPS 15 9500"
-                  value={formData.marca_modelo}
+                  id="precio"
+                  type="number"
+                  step="0.01"
+                  placeholder="Ej: 150.50"
+                  value={formData.precio}
                   onChange={handleChange}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="usuarioAsignado">Usuario Asignado</Label>
-                <Select onValueChange={handleUsuarioChange}>
+                <Label htmlFor="cantidad">Cantidad</Label>
+                <Input
+                  id="cantidad"
+                  type="number"
+                  placeholder="Ej: 10"
+                  value={formData.cantidad}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="proveedor">Proveedor</Label>
+                <Select onValueChange={handleProveedorChange}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un usuario" />
+                    <SelectValue placeholder="Selecciona un proveedor" />
                   </SelectTrigger>
                   <SelectContent>
-                    {usuarios.map((usuario: any) => (
+                    {proveedores.map((proveedor: any) => (
                       <SelectItem
-                        key={usuario.usuario_id}
-                        value={usuario.usuario_id.toString()}
+                        key={proveedor.proveedor_id}
+                        value={proveedor.proveedor_id.toString()}
                       >
-                        {usuario.nombre} {usuario.apellido}
+                        {proveedor.nombre}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -174,14 +171,14 @@ export default function NuevoDispositivoPage() {
           </CardContent>
           <CardFooter className="flex justify-end">
             <Button type="submit" className="bg-primary hover:bg-primary/90">
-              Registrar Dispositivo
+              Registrar Componente
             </Button>
           </CardFooter>
         </form>
         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
         {success && (
           <p className="text-green-500 text-sm mt-2">
-            Dispositivo registrado exitosamente.
+            Componente registrado exitosamente.
           </p>
         )}
       </Card>

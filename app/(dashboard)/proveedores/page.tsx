@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Search, Truck, Trash2, Edit } from "lucide-react";
+import axios from "../../axiosConfig";
 
 export default function ProveedoresPage() {
   const router = useRouter();
@@ -31,15 +32,10 @@ export default function ProveedoresPage() {
   useEffect(() => {
     async function fetchProveedores() {
       try {
-        const response = await fetch("http://localhost:3000/proveedor");
-        if (!response.ok) {
-          console.error(`Error al obtener proveedores. Código: ${response.status}`);
-          return;
-        }
-        const data = await response.json();
-        setProveedores(data);
+        const response = await axios.get("/proveedor");
+        setProveedores(response.data);
       } catch (error) {
-        console.error("Error en la petición de proveedores:", error);
+        console.error("Error al obtener proveedores:", error);
       }
     }
     fetchProveedores();
@@ -48,17 +44,13 @@ export default function ProveedoresPage() {
   // Función para eliminar proveedor
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/proveedor/${id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        console.error(`Error eliminando proveedor. Código: ${response.status}`);
-        return;
+      const response = await axios.delete(`/proveedor/${id}`);
+      if (response.status === 200) {
+        // Actualizar el estado eliminando el item eliminado
+        setProveedores((prev) =>
+          prev.filter((item) => (item.proveedor_id || item.id) !== id)
+        );
       }
-      // Actualizar el estado eliminando el item eliminado
-      setProveedores((prev) =>
-        prev.filter((item) => (item.proveedor_id || item.id) !== id)
-      );
     } catch (error) {
       console.error("Error al eliminar proveedor:", error);
     }
@@ -101,7 +93,9 @@ export default function ProveedoresPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Proveedores</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total de Proveedores
+            </CardTitle>
             <Truck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -148,20 +142,31 @@ export default function ProveedoresPage() {
             <TableBody>
               {filteredProveedores.map((proveedor, index) => {
                 // Obtener el identificador real, ya sea "proveedor_id" o "id"
-                const providerId = proveedor.proveedor_id || proveedor.id || index + 1;
+                const providerId =
+                  proveedor.proveedor_id || proveedor.id || index + 1;
                 return (
                   <TableRow key={index}>
                     <TableCell>{providerId}</TableCell>
-                    <TableCell className="font-medium">{proveedor.nombre}</TableCell>
+                    <TableCell className="font-medium">
+                      {proveedor.nombre}
+                    </TableCell>
                     <TableCell>{proveedor.contacto ?? "N/A"}</TableCell>
                     <TableCell>{proveedor.direccion ?? "N/A"}</TableCell>
                     <TableCell className="flex space-x-2">
                       <Link href={`/proveedores/editar/${providerId}`}>
-                        <Button variant="outline" size="sm" onClick={() => handleEdit(providerId)}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(providerId)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <Button variant="destructive" size="sm" onClick={() => handleDelete(providerId)}>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(providerId)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>

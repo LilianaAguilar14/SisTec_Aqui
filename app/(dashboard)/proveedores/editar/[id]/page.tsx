@@ -42,9 +42,11 @@ export default function EditarProveedorPage() {
 
     async function fetchProveedor() {
       try {
-        const response = await fetch(`http://localhost:3000/proveedor/${numericId}`);
+        const response = await fetch(`/proveedor/${numericId}`);
         if (!response.ok) {
-          console.error(`Error al obtener proveedor. Código: ${response.status}`);
+          console.error(
+            `Error al obtener proveedor. Código: ${response.status}`
+          );
           setError("No se pudo cargar el proveedor.");
           setLoading(false);
           return;
@@ -89,13 +91,15 @@ export default function EditarProveedorPage() {
     const numericId = parseInt(id, 10);
 
     try {
-      const response = await fetch(`http://localhost:3000/proveedor/${numericId}`, {
+      const response = await fetch(`/proveedor/${numericId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
       if (!response.ok) {
-        console.error(`Error al actualizar proveedor. Código: ${response.status}`);
+        console.error(
+          `Error al actualizar proveedor. Código: ${response.status}`
+        );
         setError("No se pudo actualizar el proveedor.");
         return;
       }
@@ -121,7 +125,8 @@ export default function EditarProveedorPage() {
         <CardHeader>
           <CardTitle className="text-2xl">Editar Proveedor</CardTitle>
           <CardDescription>
-            Modifica el nombre, el contacto y la dirección del proveedor y guarda los cambios.
+            Modifica el nombre, el contacto y la dirección del proveedor y
+            guarda los cambios.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -129,7 +134,10 @@ export default function EditarProveedorPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Campo Nombre */}
             <div>
-              <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="nombre"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Nombre
               </label>
               <Input
@@ -143,7 +151,10 @@ export default function EditarProveedorPage() {
             </div>
             {/* Campo Contacto */}
             <div>
-              <label htmlFor="contacto" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="contacto"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Contacto
               </label>
               <Input
@@ -157,7 +168,10 @@ export default function EditarProveedorPage() {
             </div>
             {/* Campo Dirección */}
             <div>
-              <label htmlFor="direccion" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="direccion"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Dirección
               </label>
               <Input
