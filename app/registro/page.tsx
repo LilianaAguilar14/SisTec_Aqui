@@ -63,7 +63,7 @@ export default function RegistroPage() {
         email: formData.email,
         password: formData.password,
         rol_id:
-          formData.rol === "tecnico" ? 1 : formData.rol === "cliente" ? 2 : 3, // Mapea el rol a un ID
+          formData.rol === "tecnico" ? 2 : formData.rol === "cliente" ? 3 : 1, // Mapea el rol a un ID
       });
       console.log(response.data);
       setSuccess(true);
