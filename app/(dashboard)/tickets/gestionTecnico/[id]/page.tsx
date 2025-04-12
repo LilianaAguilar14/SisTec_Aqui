@@ -99,23 +99,54 @@ export default function GestionTecnicoTicketPage() {
     setEstadoEditable(value);
   };
 
-  // Manejo de envío del formulario
+  // Función para agregar los comentarios mediante el endpoint dedicado
+  const agregarComentarios = async () => {
+    // Separa el string de comentarios en un array utilizando "\n---------\n" como delimitador
+    const comentariosArray = nuevosComentarios
+      .split("\n---------\n")
+      .map((comentario) => comentario.trim())
+      .filter((comentario) => comentario !== "");
+
+    // Recorre cada comentario y ejecuta un POST
+    for (const comentario of comentariosArray) {
+      try {
+        const comentarioData = {
+          ticket_id: ticketData.ticket_id,
+          contenido: comentario,
+          // Puedes agregar otros campos requeridos, p.ej. el usuario que comenta.
+        };
+  
+        const resComentario = await fetch("http://localhost:3000/comentario-ticket", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(comentarioData),
+        });
+  
+        if (!resComentario.ok) {
+          console.error(`Error al agregar comentario. Código: ${resComentario.status}`);
+        }
+      } catch (err) {
+        console.error("Error al agregar comentario:", err);
+      }
+    }
+  };
+
+  // Manejo de envío del formulario: actualiza ticket mediante PUT y luego agrega comentarios
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess(false);
 
     try {
-      // Asigna la fecha actual en formato ISO sin formatear adicionalmente
-      const fecha: Date = new Date();
-      const formateada = fecha.toISOString();
+      // Asigna la fecha actual en formato ISO
+      const fecha = new Date().toISOString();
 
+      // Construir el cuerpo del PUT con la estructura requerida
       const bodyData = {
         diagnostico,
         solucion,
-        comentarios: nuevosComentarios,
-        estado: estadoEditable, // Si el backend requiere un número, puedes parsearlo
-        fecha_solucion: formateada,
+        estado: { estado_ticket_id: Number(estadoEditable) },
+        fecha_solucion: fecha,
       };
 
       const response = await fetch(`http://localhost:3000/ticket/${id}`, {
@@ -128,19 +159,21 @@ export default function GestionTecnicoTicketPage() {
         throw new Error(`Error al actualizar el ticket. Código: ${response.status}`);
       }
 
-      setSuccess(true);
-
       // Actualizamos los datos locales una vez guardados exitosamente
       setTicketData((prev: any) => ({
         ...prev,
         diagnostico,
         solucion,
-        comentarios: nuevosComentarios,
         estado: estados.find(
           (est) => est.estado_ticket_id.toString() === estadoEditable
         ),
-        fecha_solucion: formateada,
+        fecha_solucion: fecha,
       }));
+
+      // Agregar comentarios mediante el endpoint dedicado
+      await agregarComentarios();
+
+      setSuccess(true);
 
       // Opcional: redirigir a la lista de tickets
       // router.push("/tickets");
@@ -150,7 +183,7 @@ export default function GestionTecnicoTicketPage() {
     }
   };
 
-  // Para la fecha de registro, se usa toLocaleDateString (o ajusta según lo necesites)
+  // Para la fecha de registro, se usa toLocaleDateString
   const fechaRegistroStr = ticketData?.fecha_registro
     ? new Date(ticketData.fecha_registro).toLocaleDateString()
     : "";
@@ -221,7 +254,7 @@ export default function GestionTecnicoTicketPage() {
                   <Textarea
                     value={nuevosComentarios}
                     onChange={(e) => setNuevosComentarios(e.target.value)}
-                    placeholder="Ingrese comentarios adicionales..."
+                    placeholder="Ingrese comentarios adicionales (separar con '\n---------\n')..."
                   />
                 </div>
                 <div className="space-y-2">
@@ -232,7 +265,10 @@ export default function GestionTecnicoTicketPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {estados.map((est) => (
-                        <SelectItem key={est.estado_ticket_id} value={est.estado_ticket_id.toString()}>
+                        <SelectItem
+                          key={est.estado_ticket_id}
+                          value={est.estado_ticket_id.toString()}
+                        >
                           {est.estado}
                         </SelectItem>
                       ))}
