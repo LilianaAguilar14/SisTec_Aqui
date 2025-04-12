@@ -12,32 +12,37 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-/**
- * Este componente representa la pantalla de edición "gestionar admin" de un ticket,
- * usando el App Router de Next.js 13 en la ruta /tickets/gestionAdmin/[id]/page.tsx.
- *
- * Ahora se agrega el selector de dispositivo para que el administrador también pueda asignarlo.
- */
 export default function GestorAdminTicketPage() {
-  // 1. Obtenemos el id del ticket desde la ruta dinámica
   const { id } = useParams();
-  // 2. Para redirigir después de editar si se desea
   const router = useRouter();
 
-  // Estado local para almacenar el ticket, categorías, técnicos y dispositivos
   const [ticketData, setTicketData] = useState<any>(null);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [tecnicos, setTecnicos] = useState<any[]>([]);
-  const [dispositivos, setDispositivos] = useState<any[]>([]);
+  const [prioridades, setPrioridades] = useState<any[]>([]);
+  const [estados, setEstados] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // 3. useEffect para cargar los datos del ticket, las categorías, técnicos y dispositivos
+  // Función para formatear una fecha (en caso de no existir, retorna "")
+  const formatFecha = (fechaStr?: string) => {
+    if (!fechaStr) return "";
+    return new Date(fechaStr).toLocaleDateString();
+  };
+
   useEffect(() => {
     if (!id) {
       setError("No se proporcionó un ID en la URL");
@@ -47,7 +52,6 @@ export default function GestorAdminTicketPage() {
 
     async function fetchData() {
       try {
-        // Obtener detalle del ticket
         const resTicket = await fetch(`http://localhost:3000/ticket/${id}`);
         if (!resTicket.ok) {
           throw new Error(`Error al obtener ticket. Código: ${resTicket.status}`);
@@ -55,7 +59,6 @@ export default function GestorAdminTicketPage() {
         const ticket = await resTicket.json();
         setTicketData(ticket);
 
-        // Obtener la lista de categorías (nota: se usa el endpoint "categoria-ticket")
         const resCats = await fetch("http://localhost:3000/categoria-ticket");
         if (!resCats.ok) {
           throw new Error(`Error al obtener categorías. Código: ${resCats.status}`);
@@ -63,7 +66,6 @@ export default function GestorAdminTicketPage() {
         const cats = await resCats.json();
         setCategorias(cats);
 
-        // Obtener la lista de técnicos
         const resTechs = await fetch("http://localhost:3000/usuarios/tecnicos");
         if (!resTechs.ok) {
           throw new Error(`Error al obtener técnicos. Código: ${resTechs.status}`);
@@ -71,14 +73,19 @@ export default function GestorAdminTicketPage() {
         const techs = await resTechs.json();
         setTecnicos(techs);
 
-        // Obtener la lista de dispositivos
-        const resDisp = await fetch("http://localhost:3000/tipo-dispositivo");
-        if (!resDisp.ok) {
-          throw new Error(`Error al obtener dispositivos. Código: ${resDisp.status}`);
+        const resPrioridades = await fetch("http://localhost:3000/prioridad-ticket");
+        if (!resPrioridades.ok) {
+          throw new Error(`Error al obtener prioridades. Código: ${resPrioridades.status}`);
         }
-        const dispData = await resDisp.json();
-        setDispositivos(dispData);
+        const prios = await resPrioridades.json();
+        setPrioridades(prios);
 
+        const resEstados = await fetch("http://localhost:3000/estado-ticket");
+        if (!resEstados.ok) {
+          throw new Error(`Error al obtener estados. Código: ${resEstados.status}`);
+        }
+        const estadosData = await resEstados.json();
+        setEstados(estadosData);
       } catch (err) {
         console.error("Error al obtener datos:", err);
         setError("No se pudieron cargar los datos del ticket.");
@@ -90,7 +97,7 @@ export default function GestorAdminTicketPage() {
     fetchData();
   }, [id]);
 
-  // 4. Manejadores de cambio para categoría, técnico y dispositivo
+  // Manejadores de cambio
   const handleCategoriaChange = (value: string) => {
     setTicketData((prev: any) => ({
       ...prev,
@@ -105,14 +112,20 @@ export default function GestorAdminTicketPage() {
     }));
   };
 
-  const handleDispositivoChange = (value: string) => {
+  const handlePrioridadChange = (value: string) => {
     setTicketData((prev: any) => ({
       ...prev,
-      dispositivo: { dispositivo_id: Number(value) },
+      prioridad: { prioridad_id: Number(value) },
     }));
   };
 
-  // 5. Envío del formulario para actualizar el ticket
+  const handleEstadoChange = (value: string) => {
+    setTicketData((prev: any) => ({
+      ...prev,
+      estado: { estado_ticket_id: Number(value) },
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -120,27 +133,26 @@ export default function GestorAdminTicketPage() {
 
     try {
       const response = await fetch(`http://localhost:3000/ticket/${id}`, {
-        method: "PUT", // o PATCH, según tu backend
+        method: "PUT", // o PATCH
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           categoria: { categoria_id: ticketData.categoria.categoria_id },
           tecnico: { usuario_id: ticketData.tecnico.usuario_id },
-          dispositivo: { dispositivo_id: ticketData.dispositivo.dispositivo_id },
+          prioridad: { prioridad_id: ticketData.prioridad?.prioridad_id },
+          estado: { estado_ticket_id: ticketData.estado?.estado_ticket_id },
         }),
       });
       if (!response.ok) {
         throw new Error(`Error al actualizar el ticket. Código: ${response.status}`);
       }
       setSuccess(true);
-      // Opcional: redirigir tras la actualización, por ejemplo:
-      // router.push("/tickets");
+      // Opcional: router.push("/tickets");
     } catch (err) {
       console.error("Error al actualizar el ticket:", err);
       setError("Hubo un error al actualizar el ticket.");
     }
   };
 
-  // 6. Renderizado condicional mientras carga
   if (loading) {
     return (
       <div className="p-4">
@@ -149,7 +161,6 @@ export default function GestorAdminTicketPage() {
     );
   }
 
-  // 7. Mostrar error si lo hay
   if (error) {
     return (
       <div className="p-4">
@@ -158,12 +169,14 @@ export default function GestorAdminTicketPage() {
     );
   }
 
-  // 8. Render principal del formulario de edición
+  // Desestructuramos las fechas del ticketData (si ya está cargado)
+  // Esto evita que hagamos referencia a ellas antes de que existan.
+  const { fecha_registro, fecha_solucion } = ticketData || {};
+
   return (
     <div className="p-4 md:p-8">
       <Card>
         <CardHeader>
-          {/* Botón para regresar */}
           <div className="flex items-center gap-2">
             <Link href="/tickets">
               <Button variant="outline" size="icon">
@@ -173,78 +186,134 @@ export default function GestorAdminTicketPage() {
             <CardTitle>Edición de Ticket #{id}</CardTitle>
           </div>
           <CardDescription>
-            Modifica la categoría, el técnico y el dispositivo asignado a este ticket.
+            Modifica los campos editables de este ticket.
           </CardDescription>
         </CardHeader>
+
+        {/* Contenedor para dividir en dos columnas */}
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-6">
-            {/* Campo: Categoría */}
-            <div className="space-y-2">
-              <Label>Categoría</Label>
-              <Select
-                value={ticketData.categoria?.categoria_id?.toString() || ""}
-                onValueChange={handleCategoriaChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona la categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categorias.map((cat) => (
-                    <SelectItem key={cat.categoria_id} value={cat.categoria_id.toString()}>
-                      {cat.categoria}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-6">
+              {/* Columna izquierda: campos editables */}
+              <div className="flex-1 space-y-6">
+                <div className="space-y-2">
+                  <Label>Categoría</Label>
+                  <Select
+                    value={ticketData.categoria?.categoria_id?.toString() || ""}
+                    onValueChange={handleCategoriaChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona la categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categorias.map((cat) => (
+                        <SelectItem key={cat.categoria_id} value={cat.categoria_id.toString()}>
+                          {cat.categoria}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {/* Campo: Técnico */}
-            <div className="space-y-2">
-              <Label>Técnico</Label>
-              <Select
-                value={ticketData.tecnico?.usuario_id?.toString() || ""}
-                onValueChange={handleTecnicoChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona el técnico" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tecnicos.map((tecnico) => (
-                    <SelectItem key={tecnico.usuario_id} value={tecnico.usuario_id.toString()}>
-                      {tecnico.nombre} {tecnico.apellido}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2">
+                  <Label>Técnico</Label>
+                  <Select
+                    value={ticketData.tecnico?.usuario_id?.toString() || ""}
+                    onValueChange={handleTecnicoChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona el técnico" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tecnicos.map((tech) => (
+                        <SelectItem key={tech.usuario_id} value={tech.usuario_id.toString()}>
+                          {tech.nombre} {tech.apellido}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {/* Campo: Dispositivo */}
-            <div className="space-y-2">
-              <Label>Dispositivo</Label>
-              <Select
-                value={ticketData.dispositivo?.dispositivo_id?.toString() || ""}
-                onValueChange={handleDispositivoChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona el dispositivo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {dispositivos.map((disp) => (
-                    <SelectItem key={disp.dispositivo_id} value={disp.dispositivo_id.toString()}>
-                      {disp.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <div className="space-y-2">
+                  <Label>Prioridad</Label>
+                  <Select
+                    value={ticketData.prioridad?.prioridad_id?.toString() || ""}
+                    onValueChange={handlePrioridadChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona la prioridad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {prioridades.map((prio) => (
+                        <SelectItem key={prio.prioridad_id} value={prio.prioridad_id.toString()}>
+                          {prio.prioridad}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Estado</Label>
+                  <Select
+                    value={ticketData.estado?.estado_ticket_id?.toString() || ""}
+                    onValueChange={handleEstadoChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona el estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {estados.map((est) => (
+                        <SelectItem key={est.estado_ticket_id} value={est.estado_ticket_id.toString()}>
+                          {est.estado}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Columna derecha: información de solo lectura */}
+              <div className="flex-1 space-y-6 border rounded-md p-4 bg-gray-50">
+                <div className="space-y-1">
+                  <Label>Título</Label>
+                  <Input value={ticketData.titulo || ""} readOnly className="bg-white" />
+                </div>
+
+                <div className="space-y-1">
+                  <Label>Descripción</Label>
+                  <Textarea value={ticketData.descripcion || ""} readOnly className="bg-white" />
+                </div>
+
+                <div className="space-y-1">
+                  <Label>Fecha Registro</Label>
+                  {/* Llamamos a nuestra función con 'fecha_registro' ya desestructurado */}
+                  <Input value={formatFecha(fecha_registro)} readOnly className="bg-white" />
+                </div>
+
+                <div className="space-y-1">
+                  <Label>Fecha Solución</Label>
+                  {/* Si no existe la fecha, mostramos "-", sino la formateamos */}
+                  <Input
+                    value={ticketData.fecha_solucion ? formatFecha(fecha_solucion) : "-"}
+                    readOnly
+                    className="bg-white"
+                  />
+                </div>
+              </div>
             </div>
           </CardContent>
+
           <CardFooter className="flex justify-end">
             <Button type="submit" className="bg-primary hover:bg-primary/90">
               Actualizar Ticket
             </Button>
           </CardFooter>
         </form>
-        {success && <p className="text-green-500 mt-2 px-4">Ticket actualizado correctamente.</p>}
+
+        {success && (
+          <p className="text-green-500 mt-2 px-4">Ticket actualizado correctamente.</p>
+        )}
         {error && <p className="text-red-500 mt-2 px-4">{error}</p>}
       </Card>
     </div>

@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
@@ -28,11 +28,14 @@ export default function NuevoTicketPage() {
     usuario_cliente_id: 0, // Vendrá del objeto cookie "user"
     nombre_cliente: "",
     apellido_cliente: "",
+    dispositivo_id: 0, // Nuevo campo para dispositivo seleccionado
   });
 
+  const [dispositivos, setDispositivos] = useState<any[]>([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  // Cargar datos del usuario desde la cookie
   useEffect(() => {
     const rawUserCookie = Cookies.get("user");
     if (rawUserCookie) {
@@ -53,12 +56,33 @@ export default function NuevoTicketPage() {
     }
   }, []);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  // Cargar la lista de dispositivos
+  useEffect(() => {
+    async function fetchDispositivos() {
+      try {
+        const response = await axios.get("http://localhost:3000/tipo-dispositivo");
+        setDispositivos(response.data);
+      } catch (error: any) {
+        console.error("Error al cargar dispositivos:", error);
+      }
+    }
+    fetchDispositivos();
+  }, []);
+
+  // Maneja los cambios en los inputs
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
+  // Maneja el cambio en el selector de dispositivo
+  const handleDispositivoChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      dispositivo_id: Number(value),
+    }));
+  };
+
+  // Enviar el formulario para registrar el ticket
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -68,12 +92,9 @@ export default function NuevoTicketPage() {
       await axios.post("http://localhost:3000/ticket", {
         titulo: formData.titulo,
         descripcion: formData.descripcion,
-        estado: {
-          estado_ticket_id: formData.estado_ticket_id,
-        },
-        cliente: {
-          usuario_id: formData.usuario_cliente_id, // Aquí está la corrección
-        },
+        estado: { estado_ticket_id: formData.estado_ticket_id },
+        cliente: { usuario_id: formData.usuario_cliente_id },
+        dispositivo: { dispositivo_id: formData.dispositivo_id },
       });
 
       setSuccess(true);
@@ -81,6 +102,7 @@ export default function NuevoTicketPage() {
         ...prev,
         titulo: "",
         descripcion: "",
+        dispositivo_id: 0,
       }));
     } catch (err: any) {
       setError(err.response?.data?.message || "Error al registrar el ticket");
@@ -89,6 +111,7 @@ export default function NuevoTicketPage() {
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      {/* Encabezado */}
       <div className="flex items-center justify-between space-y-2">
         <div className="flex items-center gap-2">
           <Link href="/tickets">
@@ -109,6 +132,7 @@ export default function NuevoTicketPage() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-6">
+            {/* Campo Título */}
             <div className="space-y-2">
               <Label htmlFor="titulo">Título del Ticket</Label>
               <Input
@@ -120,6 +144,7 @@ export default function NuevoTicketPage() {
               />
             </div>
 
+            {/* Campo Descripción */}
             <div className="space-y-2">
               <Label htmlFor="descripcion">Descripción</Label>
               <Textarea
@@ -131,15 +156,13 @@ export default function NuevoTicketPage() {
               />
             </div>
 
+            {/* Campo Estado (read-only) */}
             <div className="space-y-2">
               <Label>Estado</Label>
-              <Input
-                value={String(ESTADO_ESPERA)}
-                readOnly
-                className="bg-gray-100"
-              />
+              <Input value={String(ESTADO_ESPERA)} readOnly className="bg-gray-100" />
             </div>
 
+            {/* Campo Cliente (read-only) */}
             <div className="space-y-2">
               <Label>Cliente</Label>
               <Input
@@ -151,6 +174,26 @@ export default function NuevoTicketPage() {
                 readOnly
                 className="bg-gray-100"
               />
+            </div>
+
+            {/* Nuevo Campo: Dispositivo */}
+            <div className="space-y-2">
+              <Label>Dispositivo</Label>
+              <Select
+                value={formData.dispositivo_id ? formData.dispositivo_id.toString() : ""}
+                onValueChange={handleDispositivoChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el dispositivo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {dispositivos.map((disp) => (
+                    <SelectItem key={disp.dispositivo_id} value={disp.dispositivo_id.toString()}>
+                      {disp.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
 

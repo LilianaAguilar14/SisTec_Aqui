@@ -287,7 +287,7 @@ export default function TicketsPage() {
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <Link href={`/tickets/tecnico/${ticket.id}`}>
+                        <Link href={`/tickets/gestionTecnico/${ticket.id}`}>
                           <Button size="sm" className="bg-green-500 hover:bg-green-600">
                             Gestionar
                           </Button>
