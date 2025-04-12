@@ -1,81 +1,90 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Search, Truck } from "lucide-react"
-import Link from "next/link"
+"use client"; // Para que los hooks funcionen en un Client Component
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Plus, Search, Truck, Trash2, Edit } from "lucide-react";
 
 export default function ProveedoresPage() {
-  // Datos de ejemplo para proveedores
-  const proveedores = [
-    {
-      id: 1,
-      nombre: "TechSupply Inc.",
-      rfc: "TSI123456789",
-      contacto: "Juan Martínez",
-      email: "juan@techsupply.com",
-      tel: "555-123-4567",
-    },
-    {
-      id: 2,
-      nombre: "ComponentesMX",
-      rfc: "CMX987654321",
-      contacto: "María Rodríguez",
-      email: "maria@componentesmx.com",
-      tel: "555-987-6543",
-    },
-    {
-      id: 3,
-      nombre: "ElectroPartes",
-      rfc: "ELP456789123",
-      contacto: "Carlos López",
-      email: "carlos@electropartes.com",
-      tel: "555-456-7890",
-    },
-    {
-      id: 4,
-      nombre: "InnovaTech",
-      rfc: "INT789123456",
-      contacto: "Ana González",
-      email: "ana@innovatech.com",
-      tel: "555-789-0123",
-    },
-    {
-      id: 5,
-      nombre: "MegaComp",
-      rfc: "MCO321654987",
-      contacto: "Roberto Sánchez",
-      email: "roberto@megacomp.com",
-      tel: "555-321-6549",
-    },
-    {
-      id: 6,
-      nombre: "TecnoSoluciones",
-      rfc: "TSO654987321",
-      contacto: "Laura Ramírez",
-      email: "laura@tecnosoluciones.com",
-      tel: "555-654-9873",
-    },
-    {
-      id: 7,
-      nombre: "DigitalParts",
-      rfc: "DPA159753468",
-      contacto: "Pedro Díaz",
-      email: "pedro@digitalparts.com",
-      tel: "555-159-7534",
-    },
-    {
-      id: 8,
-      nombre: "ElectronicaTotal",
-      rfc: "ETO753159468",
-      contacto: "Sofía Torres",
-      email: "sofia@electronicatotal.com",
-      tel: "555-753-1594",
-    },
-  ]
+  const router = useRouter();
+  const [proveedores, setProveedores] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Obtener los proveedores desde el backend al montar el componente
+  useEffect(() => {
+    async function fetchProveedores() {
+      try {
+        const response = await fetch("http://localhost:3000/proveedor");
+        if (!response.ok) {
+          console.error(`Error al obtener proveedores. Código: ${response.status}`);
+          return;
+        }
+        const data = await response.json();
+        setProveedores(data);
+      } catch (error) {
+        console.error("Error en la petición de proveedores:", error);
+      }
+    }
+    fetchProveedores();
+  }, []);
+
+  // Función para eliminar proveedor
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:3000/proveedor/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        console.error(`Error eliminando proveedor. Código: ${response.status}`);
+        return;
+      }
+      // Actualizar el estado eliminando el item eliminado
+      setProveedores((prev) =>
+        prev.filter((item) => (item.proveedor_id || item.id) !== id)
+      );
+    } catch (error) {
+      console.error("Error al eliminar proveedor:", error);
+    }
+  };
+
+  // Función para editar proveedor: redirige a la página de editar
+  const handleEdit = (id) => {
+    router.push(`/proveedores/editar/${id}`);
+  };
+
+  // Filtrar proveedores en función del término de búsqueda (nombre, contacto o dirección)
+  const filteredProveedores = proveedores.filter((proveedor) => {
+    const nombre = proveedor.nombre?.toLowerCase() || "";
+    const contacto = proveedor.contacto?.toLowerCase() || "";
+    const direccion = proveedor.direccion?.toLowerCase() || "";
+    const term = searchTerm.toLowerCase();
+    return (
+      nombre.includes(term) ||
+      contacto.includes(term) ||
+      direccion.includes(term)
+    );
+  });
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      {/* Encabezado */}
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Proveedores</h2>
         <div className="flex items-center space-x-2">
@@ -87,6 +96,8 @@ export default function ProveedoresPage() {
           </Link>
         </div>
       </div>
+
+      {/* Tarjeta de Estadísticas */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -95,21 +106,33 @@ export default function ProveedoresPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{proveedores.length}</div>
-            <p className="text-xs text-muted-foreground">+2 desde el mes pasado</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Lista de Proveedores con búsqueda */}
       <Card>
         <CardHeader>
           <CardTitle>Lista de Proveedores</CardTitle>
-          <CardDescription>Gestiona los proveedores de componentes para reparaciones</CardDescription>
-          <div className="flex w-full max-w-sm items-center space-x-2">
-            <Input type="search" placeholder="Buscar proveedor..." className="h-9" />
+          <CardDescription>
+            Gestiona los proveedores de componentes para reparaciones
+          </CardDescription>
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            className="flex w-full max-w-sm items-center space-x-2 mt-4"
+          >
+            <Input
+              type="search"
+              placeholder="Buscar proveedor..."
+              className="h-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
             <Button type="submit" size="sm" className="h-9 px-4 py-2">
               <Search className="h-4 w-4" />
               <span className="sr-only">Buscar</span>
             </Button>
-          </div>
+          </form>
         </CardHeader>
         <CardContent>
           <Table>
@@ -117,28 +140,38 @@ export default function ProveedoresPage() {
               <TableRow>
                 <TableHead>ID</TableHead>
                 <TableHead>Nombre</TableHead>
-                <TableHead>RFC</TableHead>
                 <TableHead>Contacto</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Teléfono</TableHead>
+                <TableHead>Dirección</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {proveedores.map((proveedor) => (
-                <TableRow key={proveedor.id}>
-                  <TableCell>{proveedor.id}</TableCell>
-                  <TableCell className="font-medium">{proveedor.nombre}</TableCell>
-                  <TableCell>{proveedor.rfc}</TableCell>
-                  <TableCell>{proveedor.contacto}</TableCell>
-                  <TableCell>{proveedor.email}</TableCell>
-                  <TableCell>{proveedor.tel}</TableCell>
-                </TableRow>
-              ))}
+              {filteredProveedores.map((proveedor, index) => {
+                // Obtener el identificador real, ya sea "proveedor_id" o "id"
+                const providerId = proveedor.proveedor_id || proveedor.id || index + 1;
+                return (
+                  <TableRow key={index}>
+                    <TableCell>{providerId}</TableCell>
+                    <TableCell className="font-medium">{proveedor.nombre}</TableCell>
+                    <TableCell>{proveedor.contacto ?? "N/A"}</TableCell>
+                    <TableCell>{proveedor.direccion ?? "N/A"}</TableCell>
+                    <TableCell className="flex space-x-2">
+                      <Link href={`/proveedores/editar/${providerId}`}>
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(providerId)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Button variant="destructive" size="sm" onClick={() => handleDelete(providerId)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-
