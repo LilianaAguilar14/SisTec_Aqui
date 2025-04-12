@@ -101,7 +101,7 @@ export default function NuevoDispositivoPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <div className="flex items-center gap-2">
-          <Link href="/dashboard/dispositivos">
+          <Link href="/dispositivos">
             <Button variant="outline" size="icon" className="h-8 w-8">
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -172,15 +172,6 @@ export default function NuevoDispositivoPage() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="descripcion">Descripción</Label>
-                <Textarea
-                  id="descripcion"
-                  placeholder="Detalles adicionales del dispositivo"
-                  value={formData.descripcion}
-                  onChange={handleChange}
-                />
               </div>
             </div>
           </CardContent>

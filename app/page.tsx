@@ -58,7 +58,7 @@ export default function Home() {
             <div className="flex justify-center">
               <div className="relative h-[350px] w-[350px]">
                 <Image
-                  src="/inicio.png"
+                  src="/inicio.jpg"
                   alt="Hero Image"
                   fill
                   className="object-contain"

@@ -10,12 +10,38 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Laptop, Monitor, Plus, Printer, Search, Server } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 
+interface Dispositivo {
+  dispositivo_id: number;
+  nombre: string;
+  tipo: string;
+  marca_modelo: string;
+  serie: string;
+  usuarioAsignado?: {
+    // Información del usuario asignado (opcional si puede ser null)
+    usuario_id: number; // ID del usuario
+    nombre: string; // Nombre del usuario
+    apellido: string; // Apellido del usuario
+    email: string; // Email del usuario
+  };
+  estado: string;
+  garantia: string;
+}
+
 export default function DispositivosPage() {
-  const [dispositivos, setDispositivos] = useState([]); // Lista de dispositivos
+  const [dispositivos, setDispositivos] = useState<Dispositivo[]>([]); // Lista de dispositivos
   const [error, setError] = useState("");
 
   // Obtener la lista de dispositivos al cargar la página
@@ -35,85 +61,133 @@ export default function DispositivosPage() {
     fetchDispositivos();
   }, []);
 
+  // Datos estáticos para las cards
+  const totalDispositivos = 50;
+  const laptops = 20;
+  const desktops = 15;
+  const impresoras = 10;
+  const enReparacion = 5;
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
-        <div className="flex items-center gap-2">
-          <Link href="/dashboard">
-            <Button variant="outline" size="icon" className="h-8 w-8">
-              <ArrowLeft className="h-4 w-4" />
+        <h2 className="text-3xl font-bold tracking-tight">Dispositivos</h2>
+        <div className="flex items-center space-x-2">
+          <Link href="/dispositivos/nuevo">
+            <Button className="bg-primary hover:bg-primary/90">
+              <Plus className="mr-2 h-4 w-4" />
+              Nuevo Dispositivo
             </Button>
           </Link>
-          <h2 className="text-3xl font-bold tracking-tight">Dispositivos</h2>
         </div>
-        <Link href="/dashboard/dispositivos/nuevo">
-          <Button className="bg-primary hover:bg-primary/90">
-            Registrar Nuevo Dispositivo
-          </Button>
-        </Link>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Dispositivos
+            </CardTitle>
+            <Laptop className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalDispositivos}</div>
+            <p className="text-xs text-muted-foreground">
+              +5 desde el mes pasado
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Laptops</CardTitle>
+            <Laptop className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{laptops}</div>
+            <p className="text-xs text-muted-foreground">
+              +2 desde el mes pasado
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Desktops</CardTitle>
+            <Server className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{desktops}</div>
+            <p className="text-xs text-muted-foreground">
+              +1 desde el mes pasado
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Impresoras</CardTitle>
+            <Printer className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{impresoras}</div>
+            <p className="text-xs text-muted-foreground">
+              +0 desde el mes pasado
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">En Reparación</CardTitle>
+            <Monitor className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{enReparacion}</div>
+            <p className="text-xs text-muted-foreground">
+              +1 desde el mes pasado
+            </p>
+          </CardContent>
+        </Card>
       </div>
       <Card>
         <CardHeader>
           <CardTitle>Lista de Dispositivos</CardTitle>
           <CardDescription>
-            Aquí puedes ver todos los dispositivos registrados en el sistema.
+            Gestiona los dispositivos registrados en el sistema
           </CardDescription>
+          <div className="flex w-full max-w-sm items-center space-x-2">
+            <Input
+              type="search"
+              placeholder="Buscar dispositivo..."
+              className="h-9"
+            />
+            <Button type="submit" size="sm" className="h-9 px-4 py-2">
+              <Search className="h-4 w-4" />
+              <span className="sr-only">Buscar</span>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          {!error && dispositivos.length === 0 && (
-            <p className="text-muted-foreground text-sm">
-              No hay dispositivos registrados.
-            </p>
-          )}
-          {dispositivos.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="min-w-full border-collapse border border-gray-200">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border border-gray-200 px-4 py-2 text-left">
-                      Nombre
-                    </th>
-                    <th className="border border-gray-200 px-4 py-2 text-left">
-                      Tipo
-                    </th>
-                    <th className="border border-gray-200 px-4 py-2 text-left">
-                      Marca/Modelo
-                    </th>
-                    <th className="border border-gray-200 px-4 py-2 text-left">
-                      Usuario Asignado
-                    </th>
-                    <th className="border border-gray-200 px-4 py-2 text-left">
-                      Descripción
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dispositivos.map((dispositivo: any) => (
-                    <tr key={dispositivo.dispositivo_id}>
-                      <td className="border border-gray-200 px-4 py-2">
-                        {dispositivo.nombre}
-                      </td>
-                      <td className="border border-gray-200 px-4 py-2">
-                        {dispositivo.tipo}
-                      </td>
-                      <td className="border border-gray-200 px-4 py-2">
-                        {dispositivo.marca_modelo}
-                      </td>
-                      <td className="border border-gray-200 px-4 py-2">
-                        {dispositivo.usuarioAsignado
-                          ? `${dispositivo.usuarioAsignado.nombre} ${dispositivo.usuarioAsignado.apellido}`
-                          : "No asignado"}
-                      </td>
-                      <td className="border border-gray-200 px-4 py-2">
-                        {dispositivo.descripcion || "Sin descripción"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Marca/Modelo</TableHead>
+                <TableHead>Usuario</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {dispositivos.map((dispositivo) => (
+                <TableRow key={dispositivo.dispositivo_id}>
+                  <TableCell>{dispositivo.dispositivo_id}</TableCell>
+                  <TableCell className="font-medium">
+                    {dispositivo.nombre}
+                  </TableCell>
+                  <TableCell>{dispositivo.tipo}</TableCell>
+                  <TableCell>{dispositivo.marca_modelo}</TableCell>
+                  <TableCell>{dispositivo.usuarioAsignado?.nombre}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>

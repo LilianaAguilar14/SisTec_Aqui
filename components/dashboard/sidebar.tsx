@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   BarChart3,
   ClipboardList,
@@ -37,8 +38,19 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
       <div className="space-y-4 py-4">
         <div className="px-4 py-2">
           <Link href="/estadisticas" className="flex items-center gap-2">
-            <Settings className="h-6 w-6 text-primary" />
-            <h2 className="text-lg font-semibold tracking-tight">SisTec</h2>
+            <div className="p-4 border-b flex items-center gap-2">
+              <div className="w-8 h-8">
+                <Image
+                  src="/logo.png"
+                  alt="TechFix Logo"
+                  width={32}
+                  height={32}
+                />
+              </div>
+              <span className="font-bold text-xl bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">
+                SisTec
+              </span>
+            </div>
           </Link>
           <div className="mt-3">
             <Link href="/">
