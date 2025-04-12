@@ -21,7 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Laptop, Monitor, Plus, Printer, Search, Server } from "lucide-react";
 import Link from "next/link";
-import axios from "axios";
+import axios from "../../axiosConfig";
 
 interface Dispositivo {
   dispositivo_id: number;
@@ -48,9 +48,7 @@ export default function DispositivosPage() {
   useEffect(() => {
     const fetchDispositivos = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:3000/tipo-dispositivo"
-        ); // Cambia la URL según tu backend
+        const response = await axios.get("/tipo-dispositivo"); // Cambia la URL según tu backend
         setDispositivos(response.data); // Asume que el backend devuelve un array de dispositivos
       } catch (err) {
         setError("Error al obtener los dispositivos");

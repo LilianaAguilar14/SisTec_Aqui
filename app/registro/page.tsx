@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Image from "next/image";
-import axios from "axios";
+import axios from "../axiosConfig";
 
 export default function RegistroPage() {
   const [formData, setFormData] = useState({
@@ -57,7 +57,7 @@ export default function RegistroPage() {
     }
 
     try {
-      const response = await axios.post("http://localhost:3000/auth/register", {
+      const response = await axios.post("/auth/register", {
         nombre: formData.nombre,
         apellido: formData.apellido,
         email: formData.email,

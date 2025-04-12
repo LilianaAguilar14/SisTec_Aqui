@@ -18,9 +18,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Cpu, Plus, Search } from "lucide-react";
+import { Cpu, Plus, Search, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
-import axios from "axios";
+import axios from "../../axiosConfig";
 
 interface Proveedor {
   proveedor_id: number;
@@ -52,7 +52,7 @@ export default function ComponentesPage() {
     const fetchComponentes = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/componente" // Cambia la URL según tu backend
+          "/componente" // Cambia la URL según tu backend
         );
         setComponentes(response.data); // Asume que el backend devuelve un array de componentes
       } catch (err) {
@@ -63,6 +63,22 @@ export default function ComponentesPage() {
 
     fetchComponentes();
   }, []);
+
+  // Función para eliminar un componente
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await axios.delete(
+        `/componente/${id}` // Cambia la URL según tu backend
+      );
+      if (response.status === 200) {
+        setComponentes((prev) =>
+          prev.filter((componente) => componente.componente_id !== id)
+        );
+      }
+    } catch (err) {
+      console.error("Error al eliminar el componente:", err);
+    }
+  };
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -158,6 +174,7 @@ export default function ComponentesPage() {
                 <TableHead>Precio</TableHead>
                 <TableHead>Cantidad</TableHead>
                 <TableHead>Proveedor</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -170,6 +187,22 @@ export default function ComponentesPage() {
                   <TableCell>${componente.precio.toFixed(2)}</TableCell>
                   <TableCell>{componente.cantidad}</TableCell>
                   <TableCell>{componente.proveedor.nombre}</TableCell>
+                  <TableCell className="flex space-x-2">
+                    <Link
+                      href={`/componentes/editar/${componente.componente_id}`}
+                    >
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(componente.componente_id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

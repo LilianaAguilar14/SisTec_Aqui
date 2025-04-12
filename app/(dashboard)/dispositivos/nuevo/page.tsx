@@ -22,7 +22,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import axios from "axios";
+import axios from "../../../axiosConfig";
 
 export default function NuevoDispositivoPage() {
   const [formData, setFormData] = useState({
@@ -43,7 +43,7 @@ export default function NuevoDispositivoPage() {
   useEffect(() => {
     const fetchUsuarios = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/usuarios"); // Cambia la URL según tu backend
+        const response = await axios.get("/usuarios"); // Cambia la URL según tu backend
         setUsuarios(response.data); // Asume que el backend devuelve un array de usuarios
       } catch (err) {
         console.error("Error al obtener los usuarios:", err);
@@ -76,10 +76,7 @@ export default function NuevoDispositivoPage() {
     setSuccess(false);
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/tipo-dispositivo",
-        formData
-      );
+      const response = await axios.post("/tipo-dispositivo", formData);
       setSuccess(true);
       setFormData({
         nombre: "",

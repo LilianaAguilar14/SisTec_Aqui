@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import axios from "axios";
+import axios from "../axiosConfig";
 import Cookies from "js-cookie"; // Importa js-cookie
 
 export default function LoginPage() {
@@ -35,7 +35,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:3000/auth/login", {
+      const response = await axios.post("/auth/login", {
         email: formData.email,
         password: formData.password,
       });

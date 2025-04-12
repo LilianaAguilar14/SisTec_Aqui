@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import axios from "axios";
+import axios from "../../../axiosConfig";
 
 export default function NuevoComponentePage() {
   const [formData, setFormData] = useState({
@@ -41,7 +41,7 @@ export default function NuevoComponentePage() {
   useEffect(() => {
     const fetchProveedores = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/proveedor"); // Cambia la URL según tu backend
+        const response = await axios.get("/proveedor"); // Cambia la URL según tu backend
         setProveedores(response.data); // Asume que el backend devuelve un array de proveedores
       } catch (err) {
         console.error("Error al obtener los proveedores:", err);
@@ -69,7 +69,7 @@ export default function NuevoComponentePage() {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/componente", // URL del endpoint
+        "/componente", // URL del endpoint
         {
           ...formData,
           precio: parseFloat(formData.precio), // Asegurarse de enviar el precio como número
