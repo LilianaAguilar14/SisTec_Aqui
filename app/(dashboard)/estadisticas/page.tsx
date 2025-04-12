@@ -116,72 +116,6 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
-
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Tickets Recientes</CardTitle>
-                <p className="text-sm text-gray-500">
-                  Últimos tickets registrados en el sistema
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium">
-                        Laptop Dell XPS - Pantalla dañada
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        Juan Pérez • Hace 2 horas
-                      </p>
-                    </div>
-                    <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
-                      En proceso
-                    </Badge>
-                  </div>
-
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium">Impresora HP - No imprime</h3>
-                      <p className="text-sm text-gray-500">
-                        María González • Hace 5 horas
-                      </p>
-                    </div>
-                    <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
-                      Pendiente
-                    </Badge>
-                  </div>
-
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium">
-                        PC de Escritorio - No enciende
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        Carlos Rodríguez • Hace 1 día
-                      </p>
-                    </div>
-                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                      Completado
-                    </Badge>
-                  </div>
-
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium">
-                        Monitor Samsung - Líneas en pantalla
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        Ana Martínez • Hace 2 días
-                      </p>
-                    </div>
-                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                      Completado
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </main>
       </div>
@@ -190,15 +124,49 @@ export default function Dashboard() {
 }
 
 function BarChart() {
-  const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun"];
-  const data = [
-    { abiertos: 40, cerrados: 24 },
-    { abiertos: 30, cerrados: 28 },
-    { abiertos: 20, cerrados: 26 },
-    { abiertos: 27, cerrados: 20 },
-    { abiertos: 18, cerrados: 19 },
-    { abiertos: 23, cerrados: 25 },
+  const [data, setData] = useState<{ abiertos: number; cerrados: number }[]>(
+    []
+  );
+  const months = [
+    "Ene",
+    "Feb",
+    "Mar",
+    "Abr",
+    "May",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dic",
   ];
+
+  useEffect(() => {
+    const fetchEstadoPorMes = async () => {
+      try {
+        const response = await axios.get("/ticket/estado-por-mes");
+        const rawData = response.data;
+
+        // Mapear los datos para que coincidan con los meses
+        const formattedData = Array(12).fill({ abiertos: 0, cerrados: 0 }); // Inicializar con 12 meses
+        rawData.forEach(
+          (item: { mes: number; abiertos: number; cerrados: number }) => {
+            formattedData[item.mes - 1] = {
+              abiertos: item.abiertos,
+              cerrados: item.cerrados,
+            };
+          }
+        );
+
+        setData(formattedData);
+      } catch (err) {
+        console.error("Error al obtener los datos de la gráfica:", err);
+      }
+    };
+
+    fetchEstadoPorMes();
+  }, []);
 
   return (
     <div className="flex flex-col h-full">
