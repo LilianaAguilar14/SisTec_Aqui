@@ -185,9 +185,6 @@ export default function GestorAdminTicketPage() {
             </Link>
             <CardTitle>Edición de Ticket #{id}</CardTitle>
           </div>
-          <CardDescription>
-            Modifica los campos editables de este ticket.
-          </CardDescription>
         </CardHeader>
 
         {/* Contenedor para dividir en dos columnas */}

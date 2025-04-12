@@ -45,6 +45,10 @@ export default function TicketsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [nombreCompleto, setNombreCompleto] = useState("");
 
+  const user = JSON.parse(Cookies.get("user") || "{}");
+  
+    const roleId = user?.rol?.rol_id;
+
   useEffect(() => {
     // 1. Leer la cookie "user" y parsear para extraer nombre y apellido
     const rawUserCookie = Cookies.get("user");
@@ -240,8 +244,8 @@ export default function TicketsPage() {
                   <TableHead>Cliente</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Comentarios</TableHead>
-                  <TableHead>Gestión Admin</TableHead>
-                  <TableHead>Gestión Técnico</TableHead>
+                  {roleId === 1 && <TableHead>Gestión Admin</TableHead>}
+                  {roleId === 2 && <TableHead>Gestión Técnico</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -278,14 +282,16 @@ export default function TicketsPage() {
                               </div>
                             ))}
                       </TableCell>
+                    {roleId === 1 && (
                       <TableCell>
-                        {/* Enlace corregido para Gestión Admin usando el id real del ticket */}
                         <Link href={`/tickets/gestionAdmin/${ticket.id}`}>
                           <Button size="sm" className="bg-blue-500 hover:bg-blue-600">
                             Gestionar
                           </Button>
                         </Link>
                       </TableCell>
+                    )}
+                    {roleId === 2 && (
                       <TableCell>
                         <Link href={`/tickets/gestionTecnico/${ticket.id}`}>
                           <Button size="sm" className="bg-green-500 hover:bg-green-600">
@@ -293,6 +299,7 @@ export default function TicketsPage() {
                           </Button>
                         </Link>
                       </TableCell>
+                    )}
                     </TableRow>
                   );
                 })}

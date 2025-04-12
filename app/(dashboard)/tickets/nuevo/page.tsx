@@ -126,9 +126,6 @@ export default function NuevoTicketPage() {
       <Card>
         <CardHeader>
           <CardTitle>Información del Ticket</CardTitle>
-          <CardDescription>
-            Ingresa Título y Descripción. El estado será "En espera" (ID {ESTADO_ESPERA}). Cliente obtenido desde cookie "user".
-          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-6">

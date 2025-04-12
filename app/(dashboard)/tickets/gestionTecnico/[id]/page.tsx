@@ -24,6 +24,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
+
 export default function GestionTecnicoTicketPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -99,11 +100,9 @@ export default function GestionTecnicoTicketPage() {
     setEstadoEditable(value);
   };
 
-  // Función para agregar los comentarios mediante el endpoint dedicado
   const agregarComentarios = async () => {
-    // Separa el string de comentarios en un array utilizando "\n---------\n" como delimitador
     const comentariosArray = nuevosComentarios
-      .split("\n---------\n")
+      .split("\n\n")
       .map((comentario) => comentario.trim())
       .filter((comentario) => comentario !== "");
 
@@ -111,13 +110,16 @@ export default function GestionTecnicoTicketPage() {
     for (const comentario of comentariosArray) {
       try {
         const comentarioData = {
-          ticket_id: ticketData.ticket_id,
           contenido: comentario,
-          // Puedes agregar otros campos requeridos, p.ej. el usuario que comenta.
+          fecha_comentario: new Date().toISOString(),
+          ticket: { ticket_id: Number(id) },
+          usuario: { usuario_id: Number(ticketData.tecnico.usuario_id) }, // Asumiendo que el técnico es el que agrega el comentario
+          
         };
-  
+        
+        console.log("Comentario a agregar:", comentarioData);
         const resComentario = await fetch("http://localhost:3000/comentario-ticket", {
-          method: "PUT",
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(comentarioData),
         });
@@ -178,7 +180,7 @@ export default function GestionTecnicoTicketPage() {
       // Opcional: redirigir a la lista de tickets
       // router.push("/tickets");
     } catch (err) {
-      console.error("Error al actualizar el ticket:", err);
+      console.error("Error al actualizar el ticket:", err.message);
       setError("Hubo un error al actualizar el ticket.");
     }
   };
@@ -254,7 +256,7 @@ export default function GestionTecnicoTicketPage() {
                   <Textarea
                     value={nuevosComentarios}
                     onChange={(e) => setNuevosComentarios(e.target.value)}
-                    placeholder="Ingrese comentarios adicionales (separar con '\n---------\n')..."
+                    placeholder="Ingrese comentarios adicionales..."
                   />
                 </div>
                 <div className="space-y-2">
