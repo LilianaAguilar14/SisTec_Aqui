@@ -39,22 +39,15 @@ interface Componente {
 
 export default function ComponentesPage() {
   const [componentes, setComponentes] = useState<Componente[]>([]);
+  const [totalComponentes, setTotalComponentes] = useState(0); // Estado para el total de componentes
   const [error, setError] = useState("");
-
-  // Datos estáticos para las cards
-  const totalComponentes = 100;
-  const enStock = 80;
-  const bajoStock = 15;
-  const sinStock = 5;
 
   // Obtener la lista de componentes al cargar la página
   useEffect(() => {
     const fetchComponentes = async () => {
       try {
-        const response = await axios.get(
-          "/componente" // Cambia la URL según tu backend
-        );
-        setComponentes(response.data); // Asume que el backend devuelve un array de componentes
+        const response = await axios.get("/componente");
+        setComponentes(response.data);
       } catch (err) {
         setError("Error al obtener los componentes");
         console.error("Error al obtener los componentes:", err);
@@ -64,12 +57,25 @@ export default function ComponentesPage() {
     fetchComponentes();
   }, []);
 
+  // Obtener el total de componentes
+  useEffect(() => {
+    const fetchTotalComponentes = async () => {
+      try {
+        const response = await axios.get("/componente/total-componentes");
+        setTotalComponentes(response.data.total); // Asume que el backend devuelve un objeto { total: number }
+      } catch (err) {
+        setError("Error al obtener el total de componentes");
+        console.error("Error al obtener el total de componentes:", err);
+      }
+    };
+
+    fetchTotalComponentes();
+  }, []);
+
   // Función para eliminar un componente
   const handleDelete = async (id: number) => {
     try {
-      const response = await axios.delete(
-        `/componente/${id}` // Cambia la URL según tu backend
-      );
+      const response = await axios.delete(`/componente/${id}`);
       if (response.status === 200) {
         setComponentes((prev) =>
           prev.filter((componente) => componente.componente_id !== id)
@@ -105,46 +111,11 @@ export default function ComponentesPage() {
           <CardContent>
             <div className="text-2xl font-bold">{totalComponentes}</div>
             <p className="text-xs text-muted-foreground">
-              +10 desde el mes pasado
+              Total registrado en el sistema
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">En Stock</CardTitle>
-            <Cpu className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{enStock}</div>
-            <p className="text-xs text-muted-foreground">
-              +5 desde el mes pasado
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bajo Stock</CardTitle>
-            <Cpu className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{bajoStock}</div>
-            <p className="text-xs text-muted-foreground">
-              -2 desde el mes pasado
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sin Stock</CardTitle>
-            <Cpu className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{sinStock}</div>
-            <p className="text-xs text-muted-foreground">
-              +1 desde el mes pasado
-            </p>
-          </CardContent>
-        </Card>
+        {/* Otras cards */}
       </div>
       {/* Tabla */}
       <Card>

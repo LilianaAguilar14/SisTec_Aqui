@@ -9,17 +9,16 @@ import axios from "../../../../axiosConfig";
 
 const EditarComponente = () => {
   const router = useRouter();
-  const params = useParams(); // Usar useParams para obtener los parámetros de la URL
+  const params = useParams();
   const [componente, setComponente] = useState({
     nombre: "",
     precio: 0,
     cantidad: 0,
-    proveedor_id: 0,
+    proveedor: { proveedor_id: 0 },
   });
   const [proveedores, setProveedores] = useState([]);
   const [error, setError] = useState("");
 
-  // Obtener el componente por ID
   useEffect(() => {
     const fetchComponente = async () => {
       try {
@@ -46,28 +45,46 @@ const EditarComponente = () => {
     }
   }, [params.id]);
 
-  // Manejar cambios en los campos del formulario
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setComponente((prev) => ({
-      ...prev,
-      [name]:
-        name === "precio" || name === "cantidad" ? parseFloat(value) : value,
-    }));
+
+    setComponente((prev) => {
+      if (name === "proveedor_id") {
+        return {
+          ...prev,
+          proveedor: { proveedor_id: parseInt(value, 10) },
+        };
+      }
+
+      return {
+        ...prev,
+        [name]:
+          name === "precio" || name === "cantidad" ? parseFloat(value) : value,
+      };
+    });
   };
 
-  // Manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Datos enviados:", componente); // Verifica los datos aquí
+
+    // Reconstruye el objeto exactamente como lo espera el backend
+    const payload = {
+      nombre: componente.nombre,
+      precio: componente.precio,
+      cantidad: componente.cantidad,
+      proveedor: {
+        proveedor_id: Number(componente.proveedor.proveedor_id), // Asegúrate que es número
+      },
+    };
+
     try {
-      await axios.put(`/componente/${params.id}`, componente);
-      router.push("/componentes"); // Redirigir a la lista de componentes
-    } catch (err) {
-      setError("Error al actualizar el componente");
-      console.error(err);
+      const response = await axios.put(`/componente/${params.id}`, payload);
+      console.log("Actualización exitosa:", response.data);
+      router.push("/componentes");
+    } catch (error) {
+      console.error("Error en la actualización:", error);
     }
   };
 
@@ -115,7 +132,7 @@ const EditarComponente = () => {
           <select
             id="proveedor_id"
             name="proveedor_id"
-            value={componente.proveedor_id}
+            value={componente.proveedor.proveedor_id}
             onChange={handleChange}
             className="w-full border rounded px-3 py-2"
             required
