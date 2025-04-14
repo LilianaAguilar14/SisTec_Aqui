@@ -56,7 +56,7 @@ export default function AgregarComponentesPage() {
   }, [id]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/reparacion-componente")
+    fetch("http://localhost:3000/componente") // Cambiar al endpoint correcto
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Error al obtener componentes: ${res.status}`);
@@ -65,16 +65,22 @@ export default function AgregarComponentesPage() {
       })
       .then((data) => {
         console.log("Componentes disponibles recibidos:", data);
-        const validComponentes = data
-          .map((item: { componente: Componente | null | undefined }) => item.componente)
-          .filter((componente): componente is Componente => componente !== null && componente !== undefined); // Filtrar valores nulos o indefinidos
+
+        // Asumimos que la estructura de los datos es como la mostrada en la imagen
+        const validComponentes = data.map((componente: Componente) => ({
+          componente_id: componente.componente_id,
+          nombre: componente.nombre,
+          precio: componente.precio,
+        }));
+
+        console.log("Componentes válidos después del procesamiento:", validComponentes);
         setComponentes(validComponentes);
       })
       .catch((error) => {
         console.error("Error al obtener componentes:", error);
         setError("No se pudo cargar la lista de componentes.");
       });
-  }, [id]);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
