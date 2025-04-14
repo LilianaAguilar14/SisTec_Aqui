@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import Link from "next/link"; // Importamos Link para navegar
+import Cookies from "js-cookie";
 
 interface Ticket {
   ticket_id: number;
@@ -29,12 +30,16 @@ interface Ticket {
 
 export default function TicketsAsignadosPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const user = JSON.parse(Cookies.get("user") || "{}");
+  const userId = user.usuario_id; // ID del usuario logueado
+  console.log(user.id);
 
   // Cargar tickets asignados al técnico con ID=3 (harcodeado como ejemplo).
   useEffect(() => {
     axios
-      .get("http://localhost:3000/ticket/tecnico/3")
+      .get(`http://localhost:3000/ticket/tecnico/${userId}`)
       .then((response) => {
+        console.log("Tickets asignados:", response.data);
         setTickets(response.data);
       })
       .catch((error) => {
@@ -46,18 +51,14 @@ export default function TicketsAsignadosPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* Encabezado principal */}
       <div className="space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Tickets Asignados</h2>
-        <p className="text-muted-foreground">
-          Mostrando los tickets devueltos por <code>/ticket/tecnico/3</code>
-        </p>
+        <h2 className="text-3xl font-bold tracking-tight">
+          Reparaciones pendientes
+        </h2>
       </div>
 
       {/* Tabla de Tickets Asignados */}
       <Card>
-        <CardHeader>
-          <CardTitle>Tickets Asignados al Técnico</CardTitle>
-          <CardDescription>Aquí se listan los tickets retornados por el endpoint</CardDescription>
-        </CardHeader>
+        <CardHeader></CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
@@ -77,11 +78,14 @@ export default function TicketsAsignadosPage() {
                   <TableCell>{ticket.descripcion}</TableCell>
                   <TableCell>
                     {ticket.fecha_solucion
-                      ? new Date(ticket.fecha_solucion).toLocaleDateString("es-ES", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })
+                      ? new Date(ticket.fecha_solucion).toLocaleDateString(
+                          "es-ES",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          }
+                        )
                       : "Pendiente"}
                   </TableCell>
                   {/* Aquí añadimos la columna de "Acciones" */}
