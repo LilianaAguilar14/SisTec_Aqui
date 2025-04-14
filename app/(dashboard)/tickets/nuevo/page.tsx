@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,8 +25,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 export default function NuevoTicketPage() {
-  const ESTADO_ESPERA = 3; // Estado "En espera"
-
+  const ESTADO_ESPERA = 3; // Estado "En espera" que se usará y se ocultará
   const [formData, setFormData] = useState({
     titulo: "",
     descripcion: "",
@@ -28,9 +33,8 @@ export default function NuevoTicketPage() {
     usuario_cliente_id: 0, // Vendrá del objeto cookie "user"
     nombre_cliente: "",
     apellido_cliente: "",
-    dispositivo_id: 0, // Nuevo campo para dispositivo seleccionado
+    dispositivo_id: 0, // Campo para el dispositivo seleccionado
   });
-
   const [dispositivos, setDispositivos] = useState<any[]>([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -56,21 +60,27 @@ export default function NuevoTicketPage() {
     }
   }, []);
 
-  // Cargar la lista de dispositivos
+  // Cargar la lista de dispositivos asignados al cliente logueado
   useEffect(() => {
     async function fetchDispositivos() {
       try {
-        const response = await axios.get("http://localhost:3000/tipo-dispositivo");
-        setDispositivos(response.data);
+        if (formData.usuario_cliente_id !== 0) {
+          const response = await axios.get(
+            `http://localhost:3000/tipo-dispositivo/por-cliente/${formData.usuario_cliente_id}`
+          );
+          setDispositivos(response.data);
+        }
       } catch (error: any) {
         console.error("Error al cargar dispositivos:", error);
       }
     }
     fetchDispositivos();
-  }, []);
+  }, [formData.usuario_cliente_id]);
 
-  // Maneja los cambios en los inputs
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  // Maneja los cambios en los inputs (título y descripción)
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
@@ -153,14 +163,18 @@ export default function NuevoTicketPage() {
               />
             </div>
 
-            {/* Campo Estado (read-only) */}
-            <div className="space-y-2">
+            {/* Campo Estado (hidden): se mantiene en el formulario para el envío */}
+            <div className="hidden">
               <Label>Estado</Label>
-              <Input value={String(ESTADO_ESPERA)} readOnly className="bg-gray-100" />
+              <Input
+                value={String(ESTADO_ESPERA)}
+                readOnly
+                className="bg-gray-100"
+              />
             </div>
 
-            {/* Campo Cliente (read-only) */}
-            <div className="space-y-2">
+            {/* Campo Cliente (hidden): se mantiene en el formulario para el envío */}
+            <div className="hidden">
               <Label>Cliente</Label>
               <Input
                 value={
@@ -173,11 +187,15 @@ export default function NuevoTicketPage() {
               />
             </div>
 
-            {/* Nuevo Campo: Dispositivo */}
+            {/* Campo Dispositivo: se carga desde el endpoint para dispositivos asignados */}
             <div className="space-y-2">
               <Label>Dispositivo</Label>
               <Select
-                value={formData.dispositivo_id ? formData.dispositivo_id.toString() : ""}
+                value={
+                  formData.dispositivo_id
+                    ? formData.dispositivo_id.toString()
+                    : ""
+                }
                 onValueChange={handleDispositivoChange}
               >
                 <SelectTrigger>
@@ -185,8 +203,11 @@ export default function NuevoTicketPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {dispositivos.map((disp) => (
-                    <SelectItem key={disp.dispositivo_id} value={disp.dispositivo_id.toString()}>
-                      {disp.nombre}
+                    <SelectItem
+                      key={disp.dispositivo_id}
+                      value={disp.dispositivo_id.toString()}
+                    >
+                      {disp.nombre} - {disp.modelo}
                     </SelectItem>
                   ))}
                 </SelectContent>
