@@ -24,26 +24,19 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
-
 export default function GestionTecnicoTicketPage() {
   const { id } = useParams();
   const router = useRouter();
 
-  // Datos completos del ticket
   const [ticketData, setTicketData] = useState<any>(null);
-  // Estados traídos de la API
   const [estados, setEstados] = useState<any[]>([]);
-  
-  // Control de estados de carga, error y éxito
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // Campos que el técnico puede editar
   const [diagnostico, setDiagnostico] = useState("");
   const [solucion, setSolucion] = useState("");
   const [nuevosComentarios, setNuevosComentarios] = useState("");
-  // Guardamos el id del estado seleccionado en el Select (como string)
   const [estadoEditable, setEstadoEditable] = useState("");
 
   useEffect(() => {
@@ -55,15 +48,15 @@ export default function GestionTecnicoTicketPage() {
 
     async function fetchData() {
       try {
-        // Obtener el ticket
         const resTicket = await fetch(`http://localhost:3000/ticket/${id}`);
         if (!resTicket.ok) {
-          throw new Error(`Error al obtener ticket. Código: ${resTicket.status}`);
+          throw new Error(
+            `Error al obtener ticket. Código: ${resTicket.status}`
+          );
         }
         const data = await resTicket.json();
         setTicketData(data);
 
-        // Inicializar los campos editables
         setDiagnostico(data.diagnostico || "");
         setSolucion(data.solucion || "");
         if (Array.isArray(data.comentarios)) {
@@ -74,13 +67,13 @@ export default function GestionTecnicoTicketPage() {
         } else {
           setNuevosComentarios(data.comentarios || "");
         }
-        // Inicializa el estado editable (se asume que data.estado.estado_ticket_id es un número)
         setEstadoEditable(data.estado?.estado_ticket_id?.toString() || "");
 
-        // Obtener estados desde la API
         const resEstados = await fetch("http://localhost:3000/estado-ticket");
         if (!resEstados.ok) {
-          throw new Error(`Error al obtener estados. Código: ${resEstados.status}`);
+          throw new Error(
+            `Error al obtener estados. Código: ${resEstados.status}`
+          );
         }
         const estadosData = await resEstados.json();
         setEstados(estadosData);
@@ -95,7 +88,6 @@ export default function GestionTecnicoTicketPage() {
     fetchData();
   }, [id]);
 
-  // Función que se ejecuta cuando se selecciona un nuevo estado en el Select
   const handleEstadoChange = (value: string) => {
     setEstadoEditable(value);
   };
@@ -106,26 +98,28 @@ export default function GestionTecnicoTicketPage() {
       .map((comentario) => comentario.trim())
       .filter((comentario) => comentario !== "");
 
-    // Recorre cada comentario y ejecuta un POST
     for (const comentario of comentariosArray) {
       try {
         const comentarioData = {
           contenido: comentario,
           fecha_comentario: new Date().toISOString(),
           ticket: { ticket_id: Number(id) },
-          usuario: { usuario_id: Number(ticketData.tecnico.usuario_id) }, // Asumiendo que el técnico es el que agrega el comentario
-          
+          usuario: { usuario_id: Number(ticketData.tecnico.usuario_id) },
         };
-        
-        console.log("Comentario a agregar:", comentarioData);
-        const resComentario = await fetch("http://localhost:3000/comentario-ticket", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(comentarioData),
-        });
-  
+
+        const resComentario = await fetch(
+          "http://localhost:3000/comentario-ticket",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(comentarioData),
+          }
+        );
+
         if (!resComentario.ok) {
-          console.error(`Error al agregar comentario. Código: ${resComentario.status}`);
+          console.error(
+            `Error al agregar comentario. Código: ${resComentario.status}`
+          );
         }
       } catch (err) {
         console.error("Error al agregar comentario:", err);
@@ -133,22 +127,20 @@ export default function GestionTecnicoTicketPage() {
     }
   };
 
-  // Manejo de envío del formulario: actualiza ticket mediante PUT y luego agrega comentarios
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess(false);
 
     try {
-      // Asigna la fecha actual en formato ISO
-      const fecha = new Date().toISOString();
+      const fecha =
+        estadoEditable === "resuelto" ? new Date().toISOString() : null;
 
-      // Construir el cuerpo del PUT con la estructura requerida
       const bodyData = {
         diagnostico,
         solucion,
         estado: { estado_ticket_id: Number(estadoEditable) },
-        fecha_solucion: fecha,
+        fecha_solucion: fecha, // Solo se agrega si el estado es "resuelto"
       };
 
       const response = await fetch(`http://localhost:3000/ticket/${id}`, {
@@ -158,10 +150,11 @@ export default function GestionTecnicoTicketPage() {
       });
 
       if (!response.ok) {
-        throw new Error(`Error al actualizar el ticket. Código: ${response.status}`);
+        throw new Error(
+          `Error al actualizar el ticket. Código: ${response.status}`
+        );
       }
 
-      // Actualizamos los datos locales una vez guardados exitosamente
       setTicketData((prev: any) => ({
         ...prev,
         diagnostico,
@@ -172,20 +165,15 @@ export default function GestionTecnicoTicketPage() {
         fecha_solucion: fecha,
       }));
 
-      // Agregar comentarios mediante el endpoint dedicado
       await agregarComentarios();
 
       setSuccess(true);
-
-      // Opcional: redirigir a la lista de tickets
-      // router.push("/tickets");
     } catch (err) {
       console.error("Error al actualizar el ticket:", err.message);
       setError("Hubo un error al actualizar el ticket.");
     }
   };
 
-  // Para la fecha de registro, se usa toLocaleDateString
   const fechaRegistroStr = ticketData?.fecha_registro
     ? new Date(ticketData.fecha_registro).toLocaleDateString()
     : "";
@@ -226,14 +214,15 @@ export default function GestionTecnicoTicketPage() {
             <CardTitle>Edición Técnico de Ticket #{id}</CardTitle>
           </div>
           <CardDescription>
-            El técnico puede modificar el diagnóstico, la solución, los comentarios y el estado. La fecha solución se asignará a la fecha actual al guardar.
+            El técnico puede modificar el diagnóstico, la solución, los
+            comentarios y el estado. La fecha solución se asignará a la fecha
+            actual solo si el estado es "Resuelto".
           </CardDescription>
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
           <CardContent>
             <div className="flex flex-col md:flex-row gap-6">
-              {/* Columna izquierda: campos editables */}
               <div className="flex-1 space-y-6">
                 <div className="space-y-2">
                   <Label>Diagnóstico</Label>
@@ -261,7 +250,10 @@ export default function GestionTecnicoTicketPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Estado</Label>
-                  <Select value={estadoEditable} onValueChange={handleEstadoChange}>
+                  <Select
+                    value={estadoEditable}
+                    onValueChange={handleEstadoChange}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona el estado" />
                     </SelectTrigger>
@@ -279,7 +271,6 @@ export default function GestionTecnicoTicketPage() {
                 </div>
               </div>
 
-              {/* Columna derecha: campos en modo solo lectura */}
               <div className="flex-1 space-y-6 border rounded-md p-4 bg-gray-50">
                 <div className="space-y-1">
                   <Label>Título</Label>
@@ -291,30 +282,52 @@ export default function GestionTecnicoTicketPage() {
                 </div>
                 <div className="space-y-1">
                   <Label>Fecha Registro</Label>
-                  <Input readOnly className="bg-white" value={fechaRegistroStr} />
+                  <Input
+                    readOnly
+                    className="bg-white"
+                    value={fechaRegistroStr}
+                  />
                 </div>
                 <div className="space-y-1">
                   <Label>Fecha Solución</Label>
-                  <Input readOnly className="bg-white" value={fecha_solucion || "-"} />
+                  <Input
+                    readOnly
+                    className="bg-white"
+                    value={fecha_solucion || "-"}
+                  />
                 </div>
                 <div className="space-y-1">
                   <Label>Categoría</Label>
-                  <Input readOnly className="bg-white" value={categoria?.categoria || "N/A"} />
+                  <Input
+                    readOnly
+                    className="bg-white"
+                    value={categoria?.categoria || "N/A"}
+                  />
                 </div>
                 <div className="space-y-1">
                   <Label>Prioridad</Label>
-                  <Input readOnly className="bg-white" value={prioridad?.prioridad || "N/A"} />
+                  <Input
+                    readOnly
+                    className="bg-white"
+                    value={prioridad?.prioridad || "N/A"}
+                  />
                 </div>
                 <div className="space-y-1">
                   <Label>Dispositivo</Label>
-                  <Input readOnly className="bg-white" value={dispositivo?.nombre || "N/A"} />
+                  <Input
+                    readOnly
+                    className="bg-white"
+                    value={dispositivo?.nombre || "N/A"}
+                  />
                 </div>
                 <div className="space-y-1">
                   <Label>Técnico</Label>
                   <Input
                     readOnly
                     className="bg-white"
-                    value={tecnico ? `${tecnico.nombre} ${tecnico.apellido}` : "N/A"}
+                    value={
+                      tecnico ? `${tecnico.nombre} ${tecnico.apellido}` : "N/A"
+                    }
                   />
                 </div>
                 <div className="space-y-1">
@@ -322,7 +335,9 @@ export default function GestionTecnicoTicketPage() {
                   <Input
                     readOnly
                     className="bg-white"
-                    value={cliente ? `${cliente.nombre} ${cliente.apellido}` : "N/A"}
+                    value={
+                      cliente ? `${cliente.nombre} ${cliente.apellido}` : "N/A"
+                    }
                   />
                 </div>
               </div>

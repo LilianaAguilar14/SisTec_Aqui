@@ -32,9 +32,8 @@ export default function TicketsAsignadosPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const user = JSON.parse(Cookies.get("user") || "{}");
   const userId = user.usuario_id; // ID del usuario logueado
-  console.log(user.id);
 
-  // Cargar tickets asignados al técnico con ID=3 (harcodeado como ejemplo).
+  // Cargar tickets asignados al técnico
   useEffect(() => {
     axios
       .get(`http://localhost:3000/ticket/tecnico/${userId}`)
@@ -47,6 +46,23 @@ export default function TicketsAsignadosPage() {
       });
   }, []);
 
+  // Filtrar tickets que no tienen fecha de solución
+  const ticketsPendientes = tickets.filter((ticket) => !ticket.fecha_solucion);
+
+  // Filtrar tickets que sí tienen fecha de solución
+  const ticketsResueltos = tickets.filter((ticket) => ticket.fecha_solucion);
+
+  // Función para formatear fechas
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "Pendiente";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("es-ES", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(date);
+  };
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* Encabezado principal */}
@@ -56,9 +72,14 @@ export default function TicketsAsignadosPage() {
         </h2>
       </div>
 
-      {/* Tabla de Tickets Asignados */}
+      {/* Tabla de Tickets Pendientes */}
       <Card>
-        <CardHeader></CardHeader>
+        <CardHeader>
+          <CardTitle>Reparaciones Pendientes</CardTitle>
+          <CardDescription>
+            Lista de tickets asignados que aún no tienen fecha de solución.
+          </CardDescription>
+        </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
@@ -71,29 +92,49 @@ export default function TicketsAsignadosPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tickets.map((ticket) => (
+              {ticketsPendientes.map((ticket) => (
                 <TableRow key={ticket.ticket_id}>
                   <TableCell>{ticket.ticket_id}</TableCell>
                   <TableCell>{ticket.titulo}</TableCell>
                   <TableCell>{ticket.descripcion}</TableCell>
-                  <TableCell>
-                    {ticket.fecha_solucion
-                      ? new Date(ticket.fecha_solucion).toLocaleDateString(
-                          "es-ES",
-                          {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          }
-                        )
-                      : "Pendiente"}
-                  </TableCell>
-                  {/* Aquí añadimos la columna de "Acciones" */}
+                  <TableCell>{formatDate(ticket.fecha_solucion)}</TableCell>
                   <TableCell>
                     <Link href={`/reparaciones/reparar/${ticket.ticket_id}`}>
                       <Button>Registrar Reparación</Button>
                     </Link>
                   </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Tabla de Tickets Resueltos */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Reparaciones Resueltas</CardTitle>
+          <CardDescription>
+            Lista de tickets asignados que ya tienen fecha de solución.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Título</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead>Fecha de Solución</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {ticketsResueltos.map((ticket) => (
+                <TableRow key={ticket.ticket_id}>
+                  <TableCell>{ticket.ticket_id}</TableCell>
+                  <TableCell>{ticket.titulo}</TableCell>
+                  <TableCell>{ticket.descripcion}</TableCell>
+                  <TableCell>{formatDate(ticket.fecha_solucion)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

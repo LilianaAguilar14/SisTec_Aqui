@@ -158,14 +158,19 @@ export default function AgregarComponentesPage() {
     console.log("Enviando datos del formulario:", formData);
 
     try {
-      const response = await fetch("http://localhost:3000/reparacion-componente", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        "http://localhost:3000/reparacion-componente",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
 
       if (!response.ok) {
-        console.error(`Error al agregar componente. Código: ${response.status}`);
+        console.error(
+          `Error al agregar componente. Código: ${response.status}`
+        );
         setError(
           `No se pudo agregar componente. Error del servidor: ${response.status}`
         );
@@ -207,7 +212,9 @@ export default function AgregarComponentesPage() {
               {ticketData.fecha_solucion ? (
                 <p>
                   <strong>Fecha Solución:</strong>{" "}
-                  {new Date(ticketData.fecha_solucion).toLocaleDateString("es-ES")}
+                  {new Date(ticketData.fecha_solucion).toLocaleDateString(
+                    "es-ES"
+                  )}
                 </p>
               ) : (
                 <p>
