@@ -24,6 +24,7 @@ export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]); // Estado inicial vacío
   const [loading, setLoading] = useState(true); // Estado de carga
   const [error, setError] = useState(""); // Estado de error
+  const [filtroRol, setFiltroRol] = useState<string | null>(null); // Estado para el filtro de rol
   const [conteoAdministradores, setConteoAdministradores] = useState(0);
   const [conteoTecnicos, setConteoTecnicos] = useState(0);
   const [conteoClientes, setConteoClientes] = useState(0);
@@ -51,7 +52,6 @@ export default function UsuariosPage() {
           axios.get("http://localhost:3000/usuarios/conteo/clientes"),
         ]);
 
-        // Ajusta para acceder a la clave `total` en lugar de `conteo`
         setConteoAdministradores(adminRes.data.total || 0);
         setConteoTecnicos(tecnicoRes.data.total || 0);
         setConteoClientes(clienteRes.data.total || 0);
@@ -64,6 +64,45 @@ export default function UsuariosPage() {
     fetchUsuarios();
     fetchConteos();
   }, []); // Ejecuta solo una vez al montar el componente
+
+  const handleFiltrarPorRol = async (rol: string) => {
+    setLoading(true);
+    setError("");
+    setFiltroRol(rol);
+
+    try {
+      const url =
+        rol === "administradores"
+          ? "http://localhost:3000/usuarios/administradores"
+          : rol === "tecnicos"
+          ? "http://localhost:3000/usuarios/tecnicos"
+          : "http://localhost:3000/usuarios/clientes";
+
+      const response = await axios.get(url);
+      setUsuarios(response.data); // Actualiza la tabla con los usuarios filtrados
+    } catch (err) {
+      console.error(err);
+      setError(`No se pudieron cargar los usuarios con rol de ${rol}.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMostrarTodos = async () => {
+    setLoading(true);
+    setError("");
+    setFiltroRol(null);
+
+    try {
+      const response = await axios.get("http://localhost:3000/usuarios");
+      setUsuarios(response.data); // Muestra todos los usuarios
+    } catch (err) {
+      console.error(err);
+      setError("No se pudieron cargar todos los usuarios.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return <p className="p-4">Cargando usuarios...</p>; // Muestra un mensaje de carga
@@ -87,16 +126,6 @@ export default function UsuariosPage() {
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Usuarios</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{usuarios.length}</div>
-            <p className="text-xs text-muted-foreground">+3 desde el mes pasado</p>
-          </CardContent>
-        </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Administradores</CardTitle>
@@ -128,10 +157,40 @@ export default function UsuariosPage() {
           </CardContent>
         </Card>
       </div>
+      <div className="flex space-x-4">
+        <Button
+          variant={filtroRol === null ? "default" : "outline"}
+          onClick={handleMostrarTodos}
+        >
+          Todos
+        </Button>
+        <Button
+          variant={filtroRol === "administradores" ? "default" : "outline"}
+          onClick={() => handleFiltrarPorRol("administradores")}
+        >
+          Administradores
+        </Button>
+        <Button
+          variant={filtroRol === "tecnicos" ? "default" : "outline"}
+          onClick={() => handleFiltrarPorRol("tecnicos")}
+        >
+          Técnicos
+        </Button>
+        <Button
+          variant={filtroRol === "clientes" ? "default" : "outline"}
+          onClick={() => handleFiltrarPorRol("clientes")}
+        >
+          Clientes
+        </Button>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Lista de Usuarios</CardTitle>
-          <CardDescription>Gestiona los usuarios registrados en el sistema</CardDescription>
+          <CardDescription>
+            {filtroRol
+              ? `Mostrando usuarios con rol de ${filtroRol}`
+              : "Mostrando todos los usuarios"}
+          </CardDescription>
           <div className="flex w-full max-w-sm items-center space-x-2">
             <Input type="search" placeholder="Buscar usuario..." className="h-9" />
             <Button type="submit" size="sm" className="h-9 px-4 py-2">
