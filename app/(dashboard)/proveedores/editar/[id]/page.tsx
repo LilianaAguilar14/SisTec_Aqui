@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import axios from "axios";
 
 export default function EditarProveedorPage() {
   const router = useRouter();
@@ -42,21 +43,15 @@ export default function EditarProveedorPage() {
 
     async function fetchProveedor() {
       try {
-        const response = await fetch(`/proveedor/${numericId}`);
-        if (!response.ok) {
-          console.error(
-            `Error al obtener proveedor. Código: ${response.status}`
-          );
-          setError("No se pudo cargar el proveedor.");
-          setLoading(false);
-          return;
-        }
-        const data = await response.json();
+        const response = await axios.get(`/proveedor/${numericId}`);
+        const data = response.data;
+
         if (!data) {
           setError("Proveedor no encontrado.");
           setLoading(false);
           return;
         }
+
         // Se cargan los datos existentes (nombre, contacto y dirección)
         setFormData({
           nombre: data.nombre || "",
@@ -91,18 +86,10 @@ export default function EditarProveedorPage() {
     const numericId = parseInt(id, 10);
 
     try {
-      const response = await fetch(`/proveedor/${numericId}`, {
-        method: "PUT",
+      await axios.put(`/proveedor/${numericId}`, formData, {
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
       });
-      if (!response.ok) {
-        console.error(
-          `Error al actualizar proveedor. Código: ${response.status}`
-        );
-        setError("No se pudo actualizar el proveedor.");
-        return;
-      }
+
       // Si se actualiza correctamente, redirige a la lista de proveedores
       router.push("/proveedores");
     } catch (error) {
