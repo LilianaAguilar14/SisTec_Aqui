@@ -56,12 +56,13 @@ export default function NuevoUsuarioPage() {
     }
 
     try {
-      const response = await axios.post("http://localhost:3000/register", {
+      const response = await axios.post("/auth/register", {
         nombre: formData.nombre,
         apellido: formData.apellido,
         email: formData.email,
         password: formData.password,
-        rol_id: formData.rol === "tecnico" ? 2 : formData.rol === "cliente" ? 3 : 1, // Mapea el rol a un ID
+        rol_id:
+          formData.rol === "tecnico" ? 2 : formData.rol === "cliente" ? 3 : 1, // Mapea el rol a un ID
       });
       setSuccess(true);
       setFormData({

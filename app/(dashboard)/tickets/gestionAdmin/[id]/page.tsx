@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import axios from "axios"; // Importar axios
 
 export default function GestorAdminTicketPage() {
   const { id } = useParams();
@@ -52,39 +53,24 @@ export default function GestorAdminTicketPage() {
 
     async function fetchData() {
       try {
-        const resTicket = await fetch(`http://localhost:3000/ticket/${id}`);
-        if (!resTicket.ok) {
-          throw new Error(`Error al obtener ticket. Código: ${resTicket.status}`);
-        }
-        const ticket = await resTicket.json();
+        // Obtener ticket
+        const { data: ticket } = await axios.get(`/ticket/${id}`);
         setTicketData(ticket);
 
-        const resCats = await fetch("http://localhost:3000/categoria-ticket");
-        if (!resCats.ok) {
-          throw new Error(`Error al obtener categorías. Código: ${resCats.status}`);
-        }
-        const cats = await resCats.json();
+        // Obtener categorías
+        const { data: cats } = await axios.get("/categoria-ticket");
         setCategorias(cats);
 
-        const resTechs = await fetch("http://localhost:3000/usuarios/tecnicos");
-        if (!resTechs.ok) {
-          throw new Error(`Error al obtener técnicos. Código: ${resTechs.status}`);
-        }
-        const techs = await resTechs.json();
+        // Obtener técnicos
+        const { data: techs } = await axios.get("/usuarios/tecnicos");
         setTecnicos(techs);
 
-        const resPrioridades = await fetch("http://localhost:3000/prioridad-ticket");
-        if (!resPrioridades.ok) {
-          throw new Error(`Error al obtener prioridades. Código: ${resPrioridades.status}`);
-        }
-        const prios = await resPrioridades.json();
+        // Obtener prioridades
+        const { data: prios } = await axios.get("/prioridad-ticket");
         setPrioridades(prios);
 
-        const resEstados = await fetch("http://localhost:3000/estado-ticket");
-        if (!resEstados.ok) {
-          throw new Error(`Error al obtener estados. Código: ${resEstados.status}`);
-        }
-        const estadosData = await resEstados.json();
+        // Obtener estados
+        const { data: estadosData } = await axios.get("/estado-ticket");
         setEstados(estadosData);
       } catch (err) {
         console.error("Error al obtener datos:", err);
@@ -132,19 +118,13 @@ export default function GestorAdminTicketPage() {
     setSuccess(false);
 
     try {
-      const response = await fetch(`http://localhost:3000/ticket/${id}`, {
-        method: "PUT", // o PATCH
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          categoria: { categoria_id: ticketData.categoria.categoria_id },
-          tecnico: { usuario_id: ticketData.tecnico.usuario_id },
-          prioridad: { prioridad_id: ticketData.prioridad?.prioridad_id },
-          estado: { estado_ticket_id: ticketData.estado?.estado_ticket_id },
-        }),
+      await axios.put(`/ticket/${id}`, {
+        categoria: { categoria_id: ticketData.categoria.categoria_id },
+        tecnico: { usuario_id: ticketData.tecnico.usuario_id },
+        prioridad: { prioridad_id: ticketData.prioridad?.prioridad_id },
+        estado: { estado_ticket_id: ticketData.estado?.estado_ticket_id },
       });
-      if (!response.ok) {
-        throw new Error(`Error al actualizar el ticket. Código: ${response.status}`);
-      }
+
       setSuccess(true);
       // Opcional: router.push("/tickets");
     } catch (err) {
@@ -169,8 +149,6 @@ export default function GestorAdminTicketPage() {
     );
   }
 
-  // Desestructuramos las fechas del ticketData (si ya está cargado)
-  // Esto evita que hagamos referencia a ellas antes de que existan.
   const { fecha_registro, fecha_solucion } = ticketData || {};
 
   return (
@@ -189,11 +167,9 @@ export default function GestorAdminTicketPage() {
           </div>
         </CardHeader>
 
-        {/* Contenedor para dividir en dos columnas */}
         <form onSubmit={handleSubmit}>
           <CardContent>
             <div className="flex flex-col md:flex-row gap-6">
-              {/* Columna izquierda: campos editables */}
               <div className="flex-1 space-y-6">
                 <div className="space-y-2">
                   <Label>Categoría</Label>
@@ -206,7 +182,10 @@ export default function GestorAdminTicketPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {categorias.map((cat) => (
-                        <SelectItem key={cat.categoria_id} value={cat.categoria_id.toString()}>
+                        <SelectItem
+                          key={cat.categoria_id}
+                          value={cat.categoria_id.toString()}
+                        >
                           {cat.categoria}
                         </SelectItem>
                       ))}
@@ -231,7 +210,10 @@ export default function GestorAdminTicketPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {tecnicos.map((tech) => (
-                        <SelectItem key={tech.usuario_id} value={tech.usuario_id.toString()}>
+                        <SelectItem
+                          key={tech.usuario_id}
+                          value={tech.usuario_id.toString()}
+                        >
                           {tech.nombre} {tech.apellido}
                         </SelectItem>
                       ))}
@@ -250,58 +232,54 @@ export default function GestorAdminTicketPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {prioridades.map((prio) => (
-                        <SelectItem key={prio.prioridad_id} value={prio.prioridad_id.toString()}>
+                        <SelectItem
+                          key={prio.prioridad_id}
+                          value={prio.prioridad_id.toString()}
+                        >
                           {prio.prioridad}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-
-                {/* Ocultar el select del estado */}
-                {/* <div className="space-y-2">
-                  <Label>Estado</Label>
-                  <Select
-                    value={ticketData.estado?.estado_ticket_id?.toString() || ""}
-                    onValueChange={handleEstadoChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona el estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {estados.map((est) => (
-                        <SelectItem key={est.estado_ticket_id} value={est.estado_ticket_id.toString()}>
-                          {est.estado}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div> */}
               </div>
 
-              {/* Columna derecha: información de solo lectura */}
               <div className="flex-1 space-y-6 border rounded-md p-4 bg-gray-50">
                 <div className="space-y-1">
                   <Label>Título</Label>
-                  <Input value={ticketData.titulo || ""} readOnly className="bg-white" />
+                  <Input
+                    value={ticketData.titulo || ""}
+                    readOnly
+                    className="bg-white"
+                  />
                 </div>
 
                 <div className="space-y-1">
                   <Label>Descripción</Label>
-                  <Textarea value={ticketData.descripcion || ""} readOnly className="bg-white" />
+                  <Textarea
+                    value={ticketData.descripcion || ""}
+                    readOnly
+                    className="bg-white"
+                  />
                 </div>
 
                 <div className="space-y-1">
                   <Label>Fecha Registro</Label>
-                  {/* Llamamos a nuestra función con 'fecha_registro' ya desestructurado */}
-                  <Input value={formatFecha(fecha_registro)} readOnly className="bg-white" />
+                  <Input
+                    value={formatFecha(fecha_registro)}
+                    readOnly
+                    className="bg-white"
+                  />
                 </div>
 
-                {/* Hacer invisible el campo "Fecha Solución" */}
                 <div className="space-y-1" style={{ display: "none" }}>
                   <Label>Fecha Solución</Label>
                   <Input
-                    value={ticketData.fecha_solucion ? formatFecha(fecha_solucion) : "-"}
+                    value={
+                      ticketData.fecha_solucion
+                        ? formatFecha(fecha_solucion)
+                        : "-"
+                    }
                     readOnly
                     className="bg-white"
                   />
@@ -318,7 +296,9 @@ export default function GestorAdminTicketPage() {
         </form>
 
         {success && (
-          <p className="text-green-500 mt-2 px-4">Ticket actualizado correctamente.</p>
+          <p className="text-green-500 mt-2 px-4">
+            Ticket actualizado correctamente.
+          </p>
         )}
         {error && <p className="text-red-500 mt-2 px-4">{error}</p>}
       </Card>

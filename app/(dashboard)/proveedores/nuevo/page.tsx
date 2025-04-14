@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import axios from "axios"; // Importar axios
 
 export default function NuevoProveedorPage() {
   const router = useRouter();
@@ -34,12 +35,10 @@ export default function NuevoProveedorPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:3000/proveedor", {
-        method: "POST",
+      const response = await axios.post("/proveedor", formData, {
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
       });
-      if (!response.ok) {
+      if (response.status !== 201) {
         console.error(`Error al crear proveedor. Código: ${response.status}`);
         return;
       }
