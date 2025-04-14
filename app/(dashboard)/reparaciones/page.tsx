@@ -25,13 +25,12 @@ interface Ticket {
   titulo: string;
   descripcion: string;
   fecha_solucion?: string | null;
-  // Ajusta o agrega campos que necesites
 }
 
 export default function TicketsAsignadosPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const user = JSON.parse(Cookies.get("user") || "{}");
-  const userId = user.usuario_id; // ID del usuario logueado
+  const userId = user.usuario_id;
 
   // Cargar tickets asignados al técnico
   useEffect(() => {
@@ -75,7 +74,7 @@ export default function TicketsAsignadosPage() {
       {/* Tabla de Tickets Pendientes */}
       <Card>
         <CardHeader>
-          <CardTitle>Reparaciones Pendientes</CardTitle>
+          <CardTitle>Reparaciones</CardTitle>
           <CardDescription>
             Lista de tickets asignados que aún no tienen fecha de solución.
           </CardDescription>
@@ -135,6 +134,11 @@ export default function TicketsAsignadosPage() {
                   <TableCell>{ticket.titulo}</TableCell>
                   <TableCell>{ticket.descripcion}</TableCell>
                   <TableCell>{formatDate(ticket.fecha_solucion)}</TableCell>
+                  <TableCell>
+                    <Link href={`/reparaciones/${ticket.ticket_id}`}>
+                      <Button>Ver Reparación</Button>
+                    </Link>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

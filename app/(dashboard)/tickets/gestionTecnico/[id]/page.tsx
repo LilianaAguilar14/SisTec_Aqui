@@ -134,7 +134,7 @@ export default function GestionTecnicoTicketPage() {
 
     try {
       const fecha =
-        estadoEditable === "resuelto" ? new Date().toISOString() : null;
+        estadoEditable === "4" ? new Date().toISOString() : null;
 
       const bodyData = {
         diagnostico,

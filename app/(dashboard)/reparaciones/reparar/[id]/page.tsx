@@ -10,15 +10,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import  axios  from "../../../../axiosConfig"; // Asegúrate de que la ruta sea correcta
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Cookies from "js-cookie";
 
 interface Ticket {
   ticket_id: number;
   titulo: string;
   descripcion: string;
   fecha_solucion?: string | null;
-  // Agrega más campos si los necesitas (estado, tecnico, etc.)
 }
 
 interface Componente {
@@ -26,247 +27,262 @@ interface Componente {
   nombre: string;
   precio: number;
   cantidad: number;
-  // proveedor u otros campos...
 }
 
-// Interfaz del formulario que se enviará a reparacion-componente
+/** Estructura para agregar un "detalle" (componente usado) */
 interface ReparacionComponenteForm {
-  ticket: { ticket_id: number };
-  reparacion: { reparacion_id: number | null }; // o string si así lo maneja tu BD
-  componente: { componente_id: number };
+  componente_id: number;
   cantidad_usada: string;
 }
 
 export default function AgregarComponentesPage() {
   const router = useRouter();
   const { id } = useParams();
-  // Aquí asumimos que {id} es el ticket_id que llega en la URL
-  // Ej: /reparaciones/repara/3 -> id = 3
 
-  // Estado para guardar info del ticket
+  // 1) Obtenemos el usuario en sesión (técnico)
+  const user = JSON.parse(Cookies.get("user") || "{}");
+  const userId = user.usuario_id;
+
+  // 2) Información del ticket
   const [ticketData, setTicketData] = useState<Ticket | null>(null);
 
-  // Estado para almacenar la lista de componentes disponibles
-  const [componentes, setComponentes] = useState<Componente[]>([]);
+  // 3) Catálogo de componentes (los disponibles para usar)
+  const [catalogoComponentes, setCatalogoComponentes] = useState<Componente[]>([]);
 
-  // Estado del formulario que enviarás al endpoint POST /reparacion-componente
-  const [formData, setFormData] = useState<ReparacionComponenteForm>({
-    ticket: { ticket_id: 0 },
-    reparacion: { reparacion_id: null },
-    componente: { componente_id: 0 },
-    cantidad_usada: "",
-  });
+  // 4) Lista de detalles (componentes a registrar)
+  const [detalles, setDetalles] = useState<ReparacionComponenteForm[]>([
+    { componente_id: 0, cantidad_usada: "" },
+  ]);
 
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Cargar información del ticket según el ID
+  // ----------------------------------------------------------------------------------
+  // Cargar datos iniciales
+  // ----------------------------------------------------------------------------------
+
+  // a) Obtener info del Ticket
   useEffect(() => {
     if (!id) return;
 
-    fetch(`http://localhost:3000/ticket/${id}`)
-      .then(async (res) => {
-        if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(
-            `Error al obtener datos del ticket: ${res.status} - ${errorText}`
-          );
-        }
-        const data = await res.json();
-        return data;
-      })
-      .then((data: Ticket) => {
-        console.log("Datos del ticket:", data);
-        setTicketData(data);
-
-        // Actualizar el formData con el ticket_id
-        setFormData((prev) => ({
-          ...prev,
-          ticket: { ticket_id: data.ticket_id },
-        }));
+    axios
+      .get<Ticket>(`/ticket/${id}`)
+      .then((response) => {
+        setTicketData(response.data);
       })
       .catch((error) => {
-        console.error("Error al obtener información del ticket:", error);
+        console.error(error);
         setError("No se pudo cargar la información del ticket.");
       });
   }, [id]);
 
-  // 2. Cargar la lista de componentes desde /componente
+  // b) Cargar catálogo de componentes
   useEffect(() => {
-    fetch("http://localhost:3000/componente")
-      .then(async (res) => {
-        if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(
-            `Error al obtener componentes: ${res.status} - ${errorText}`
-          );
-        }
-        // La respuesta debería ser un array de componentes
-        const data = await res.json();
-        return data;
-      })
-      .then((data: Componente[]) => {
-        console.log("Componentes disponibles recibidos:", data);
-        // Guardar directamente el array de componentes
-        setComponentes(data);
+    axios
+      .get<Componente[]>("/componente")
+      .then((response) => {
+        setCatalogoComponentes(response.data);
       })
       .catch((error) => {
-        console.error("Error al obtener componentes:", error);
+        console.error(error);
         setError("No se pudo cargar la lista de componentes.");
       });
   }, []);
 
-  // 3. Manejo de cambios en el formulario
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
+  // ----------------------------------------------------------------------------------
+  // Manejo de componentes en el formulario
+  // ----------------------------------------------------------------------------------
 
-    setFormData((prev) => {
-      // Si cambia el componente_id
-      if (name === "componente_id") {
-        return {
-          ...prev,
-          componente: { componente_id: Number(value) },
-        };
-      }
-      // Si cambia la cantidad_usada
-      if (name === "cantidad_usada") {
-        return {
-          ...prev,
-          cantidad_usada: value,
-        };
-      }
-      return prev;
-    });
+  // Agregar una nueva fila para seleccionar otro componente
+  const handleAddDetalle = () => {
+    setDetalles((prev) => [...prev, { componente_id: 0, cantidad_usada: "" }]);
   };
 
-  // 4. Enviar la información al endpoint POST /reparacion-componente
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Eliminar fila (por índice)
+  const handleRemoveDetalle = (index: number) => {
+    setDetalles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Manejo de cambios en cada detalle
+  const handleChangeDetalle = (
+    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>,
+    index: number
+  ) => {
+    const { name, value } = e.target;
+    setDetalles((prev) =>
+      prev.map((detalle, i) => {
+        if (i !== index) return detalle;
+        if (name === "componente_id") {
+          return { ...detalle, componente_id: Number(value) };
+        }
+        if (name === "cantidad_usada") {
+          return { ...detalle, cantidad_usada: value };
+        }
+        return detalle;
+      })
+    );
+  };
+
+  // ----------------------------------------------------------------------------------
+  // Guardar la Reparación + Componentes en un solo flujo (al hacer clic en "Guardar")
+  // ----------------------------------------------------------------------------------
+  const handleGuardar = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // Validar que los campos requeridos tengan valores
-    if (
-      !formData.ticket.ticket_id ||
-      !formData.componente.componente_id ||
-      !formData.cantidad_usada
-    ) {
-      setError("Todos los campos son obligatorios.");
+    // Validaciones mínimas
+    if (!id) {
+      setError("No se encontró el ID del ticket en la URL.");
       return;
     }
-
-    console.log("Enviando datos del formulario:", formData);
-
-    try {
-      const response = await fetch(
-        "http://localhost:3000/reparacion-componente",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      if (!response.ok) {
-        console.error(
-          `Error al agregar componente. Código: ${response.status}`
-        );
-        setError(
-          `No se pudo agregar componente. Error del servidor: ${response.status}`
-        );
+    if (!userId) {
+      setError("No se encontró el ID del usuario en sesión.");
+      return;
+    }
+    for (const det of detalles) {
+      if (!det.componente_id || !det.cantidad_usada) {
+        setError("Hay campos de componente o cantidad incompletos.");
         return;
       }
+    }
 
-      const data = await response.json();
-      console.log("Respuesta del servidor al agregar componente:", data);
+    try {
+      // 1) Crear la Reparación con la fecha actual, el ticket y el técnico
+      const bodyReparacion = {
+        fecha_reparacion: new Date().toISOString(),
+        ticket_id: parseInt(id, 10),
+        usuario_tecnico_id: userId,
+      };
 
-      // Navegar de vuelta a la lista de reparaciones o donde corresponda
+      console.log("Creando reparación con:", bodyReparacion);
+
+      // axios lanza excepción si la respuesta tiene status >= 400
+      const respRep = await axios.post("/reparacion", bodyReparacion);
+      const dataRep = respRep.data;
+      const newReparacionId = dataRep.reparacion_id;
+
+      if (!newReparacionId) {
+        throw new Error("La respuesta no contenía 'reparacion_id'.");
+      }
+
+      // 2) Con el ID de la reparación, creamos los detalles uno por uno
+      for (const det of detalles) {
+        const bodyDetalle = {
+          ticket: { ticket_id: parseInt(id, 10) },
+          reparacion: { reparacion_id: newReparacionId },
+          componente: { componente_id: det.componente_id },
+          cantidad_usada: det.cantidad_usada,
+        };
+
+        await axios.post("/reparacion-componente", bodyDetalle);
+      }
+
+      // Si todo salió bien
+      console.log("Reparación y sus componentes se registraron con éxito.");
       router.push("/reparaciones?reload=true");
-    } catch (error) {
-      console.error("Error al agregar componente:", error);
-      setError("Ocurrió un error al agregar el componente.");
+    } catch (err: any) {
+      console.error(err);
+      // Puedes mejorar el manejo de error según la estructura de tu backend
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError(err.message || "Ocurrió un error al guardar la reparación y sus componentes.");
+      }
     }
   };
 
+  // ----------------------------------------------------------------------------------
+  // Render
+  // ----------------------------------------------------------------------------------
   return (
     <div className="p-4 md:p-8">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Registrar Reparación</CardTitle>
           <CardDescription>
-            Agrega los componentes utilizados para el ticket #{id}.
+            Selecciona todos los componentes usados.
+            <br />
+            Al guardar, se creará la reparación y se registrarán todos los detalles.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {error && <p className="text-red-500 mb-4">{error}</p>}
 
-          {/* Mostrar datos básicos del ticket */}
+          {/* Datos del Ticket */}
           {ticketData && (
-            <div className="mb-6">
+            <div className="mb-4">
+              <p>
+                <strong>Ticket #{ticketData.ticket_id}</strong>
+              </p>
               <p>
                 <strong>Título:</strong> {ticketData.titulo}
               </p>
               <p>
                 <strong>Descripción:</strong> {ticketData.descripcion}
               </p>
-              {ticketData.fecha_solucion ? (
-                <p>
-                  <strong>Fecha Solución:</strong>{" "}
-                  {new Date(ticketData.fecha_solucion).toLocaleDateString(
-                    "es-ES"
-                  )}
-                </p>
-              ) : (
-                <p>
-                  <strong>Estado:</strong> Pendiente de solución
-                </p>
-              )}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div>
-              <Label htmlFor="componente_id">Componente</Label>
-              <select
-                id="componente_id"
-                name="componente_id"
-                value={formData.componente.componente_id || ""}
-                onChange={handleChange}
-                className="w-full border rounded p-2"
+          {/* Formulario para los componentes */}
+          <form onSubmit={handleGuardar} className="space-y-6">
+            {detalles.map((detalle, index) => (
+              <div
+                key={index}
+                className="flex flex-col md:flex-row items-center gap-4"
               >
-                <option value="">Selecciona un componente</option>
-                {componentes.length > 0 ? (
-                  componentes.map((componente) => (
-                    <option
-                      key={componente.componente_id}
-                      value={componente.componente_id}
-                    >
-                      {componente.nombre} - ${componente.precio}
-                    </option>
-                  ))
-                ) : (
-                  <option value="" disabled>
-                    No hay componentes disponibles
-                  </option>
-                )}
-              </select>
-            </div>
+                {/* Seleccionar componente */}
+                <div className="flex-1">
+                  <Label>Componente</Label>
+                  <select
+                    name="componente_id"
+                    value={detalle.componente_id || ""}
+                    onChange={(e) => handleChangeDetalle(e, index)}
+                    className="w-full border rounded p-2"
+                  >
+                    <option value="">Selecciona un componente</option>
+                    {catalogoComponentes.map((comp) => (
+                      <option key={comp.componente_id} value={comp.componente_id}>
+                        {comp.nombre} - ${comp.precio}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            <div>
-              <Label htmlFor="cantidad_usada">Cantidad Usada</Label>
-              <Input
-                id="cantidad_usada"
-                name="cantidad_usada"
-                placeholder="Ej: 2"
-                type="number"
-                value={formData.cantidad_usada}
-                onChange={handleChange}
-              />
-            </div>
+                {/* Cantidad usada */}
+                <div className="flex-1">
+                  <Label>Cantidad Usada</Label>
+                  <Input
+                    name="cantidad_usada"
+                    type="number"
+                    placeholder="Ej: 2"
+                    value={detalle.cantidad_usada}
+                    onChange={(e) => handleChangeDetalle(e, index)}
+                  />
+                </div>
 
+                {/* Botón para eliminar la fila */}
+                <Button
+                  variant="destructive"
+                  type="button"
+                  onClick={() => handleRemoveDetalle(index)}
+                >
+                  Eliminar
+                </Button>
+              </div>
+            ))}
+
+            {/* Botón para agregar más componentes */}
+            <Button
+              type="button"
+              className="bg-green-600 hover:bg-green-700"
+              onClick={handleAddDetalle}
+            >
+              + Agregar otro componente
+            </Button>
+
+            {/* Botón para GUARDAR (crea la reparación + detalles) */}
             <div className="flex justify-end">
-              <Button type="submit" className="bg-primary hover:bg-primary/90">
-                Guardar
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                Guardar Reparación y Detalles
               </Button>
             </div>
           </form>
