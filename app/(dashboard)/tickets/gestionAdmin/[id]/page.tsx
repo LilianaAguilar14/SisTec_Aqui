@@ -183,7 +183,9 @@ export default function GestorAdminTicketPage() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
-            <CardTitle>Edición de Ticket #{id}</CardTitle>
+            <CardTitle>
+              Edición de Ticket #{id} - {ticketData?.titulo || "Sin título"}
+            </CardTitle>
           </div>
         </CardHeader>
 
@@ -216,7 +218,13 @@ export default function GestorAdminTicketPage() {
                   <Label>Técnico</Label>
                   <Select
                     value={ticketData.tecnico?.usuario_id?.toString() || ""}
-                    onValueChange={handleTecnicoChange}
+                    onValueChange={(value) => {
+                      handleTecnicoChange(value);
+                      setTicketData((prev: any) => ({
+                        ...prev,
+                        estado: { estado_ticket_id: 1 }, // Cambia automáticamente el estado a "abierto" (ID 1)
+                      }));
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona el técnico" />
@@ -250,7 +258,8 @@ export default function GestorAdminTicketPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                {/* Ocultar el select del estado */}
+                {/* <div className="space-y-2">
                   <Label>Estado</Label>
                   <Select
                     value={ticketData.estado?.estado_ticket_id?.toString() || ""}
@@ -267,7 +276,7 @@ export default function GestorAdminTicketPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
+                </div> */}
               </div>
 
               {/* Columna derecha: información de solo lectura */}
@@ -288,9 +297,9 @@ export default function GestorAdminTicketPage() {
                   <Input value={formatFecha(fecha_registro)} readOnly className="bg-white" />
                 </div>
 
-                <div className="space-y-1">
+                {/* Hacer invisible el campo "Fecha Solución" */}
+                <div className="space-y-1" style={{ display: "none" }}>
                   <Label>Fecha Solución</Label>
-                  {/* Si no existe la fecha, mostramos "-", sino la formateamos */}
                   <Input
                     value={ticketData.fecha_solucion ? formatFecha(fecha_solucion) : "-"}
                     readOnly
