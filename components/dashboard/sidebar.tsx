@@ -54,14 +54,6 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
               </span>
             </div>
           </Link>
-          <div className="mt-3">
-            <Link href="/">
-              <Button variant="ghost" className="w-full justify-start">
-                <Home className="mr-2 h-4 w-4" />
-                Volver al sitio
-              </Button>
-            </Link>
-          </div>
         </div>
 
         {(roleId === 1 || roleId === 2 || roleId === 3) && (
@@ -112,7 +104,7 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
 
         {/* Sección Inventario */}
         {/* Ejemplo: disponible solo para rol 1 y 2 */}
-        {(roleId === 1 || roleId === 2) && (
+        {(roleId === 1) && (
           <div className="px-4 py-2">
             <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
               Inventario

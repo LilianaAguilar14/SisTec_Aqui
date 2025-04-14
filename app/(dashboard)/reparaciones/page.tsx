@@ -1,228 +1,93 @@
 "use client";
 import { useEffect, useState } from "react";
 import axios from "../../axiosConfig";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { Plus } from "lucide-react";
-import Cookies from "js-cookie";
-import { useSearchParams } from "next/navigation";
+import Link from "next/link"; // Importamos Link para navegar
 
-export default function ReparacionesPage() {
-  const [todasReparaciones, setTodasReparaciones] = useState<Reparacion[]>([]);
-  const [reparacionesPendientes, setReparacionesPendientes] = useState<Reparacion[]>([]);
-  const [costoTotal, setCostoTotal] = useState(0);
-  const [costoPromedio, setCostoPromedio] = useState(0);
-  const [searchTodas, setSearchTodas] = useState("");
-  const [searchPendientes, setSearchPendientes] = useState("");
-  const searchParams = useSearchParams();
-  const reloadParam = searchParams.get("reload");
+interface Ticket {
+  ticket_id: number;
+  titulo: string;
+  descripcion: string;
+  fecha_solucion?: string | null;
+  // Ajusta o agrega campos que necesites
+}
 
-  interface Reparacion {
-    reparacion_id: number;
-    fecha_reparacion?: string;
-    ticket: string | { titulo: string; fecha_solucion?: string | null; ticket_id?: number };
-    costo?: number;
-    tecnico: { usuario_id: number };
-  }
+export default function TicketsAsignadosPage() {
+  const [tickets, setTickets] = useState<Ticket[]>([]);
 
+  // Cargar tickets asignados al técnico con ID=3 (harcodeado como ejemplo).
   useEffect(() => {
-    axios.get("http://localhost:3000/reparacion")
+    axios
+      .get("http://localhost:3000/ticket/tecnico/3")
       .then((response) => {
-        const reparaciones = response.data;
-        // Procesar reparaciones...
-        setTodasReparaciones(reparaciones);
+        setTickets(response.data);
       })
-      .catch((error) => console.error("Error fetching reparaciones:", error));
-  }, [reloadParam]); // Recargar si cambia el parámetro
-
-  useEffect(() => {
-    const rawUserCookie = Cookies.get("user");
-    if (rawUserCookie) {
-      try {
-        const decoded = decodeURIComponent(rawUserCookie);
-        const userObj = JSON.parse(decoded);
-        if (userObj.usuario_id) {
-          console.log("ID del técnico logueado desde las cookies:", userObj.usuario_id);
-
-          // Obtener todas las reparaciones
-          axios.get("http://localhost:3000/reparacion")
-            .then((response) => {
-              const reparaciones = response.data;
-
-              // Obtener los costos de las reparaciones
-              axios.get("http://localhost:3000/reparacion/costos")
-                .then((costosResponse) => {
-                  const costos = costosResponse.data;
-
-                  // Combinar costos con reparaciones
-                  const reparacionesConCostos = reparaciones.map((reparacion: Reparacion) => {
-                    const costo: number = costos.find((c: { reparacionId: number; costo: number }) => c.reparacionId === reparacion.reparacion_id)?.costo || 0;
-                    return { ...reparacion, costo };
-                  });
-
-                  console.log("Reparaciones con costos:", reparacionesConCostos);
-
-                  setTodasReparaciones(reparacionesConCostos);
-
-                  // Filtrar reparaciones pendientes por técnico
-                  const pendientes: Reparacion[] = reparacionesConCostos.filter(
-                    (reparacion: Reparacion) =>
-                      reparacion.tecnico.usuario_id === userObj.usuario_id &&
-                      typeof reparacion.ticket === "object" &&
-                      reparacion.ticket.fecha_solucion === null
-                  );
-                  setReparacionesPendientes(pendientes);
-
-                  // Calcular costo total y promedio
-                    const total: number = reparacionesConCostos.reduce((sum: number, rep: Reparacion) => sum + (rep.costo || 0), 0);
-                  setCostoTotal(total);
-                  setCostoPromedio(reparacionesConCostos.length > 0 ? total / reparacionesConCostos.length : 0);
-                })
-                .catch((error) => console.error("Error fetching costos:", error));
-            })
-            .catch((error) => console.error("Error fetching reparaciones:", error));
-        }
-      } catch (error) {
-        console.error("Error al parsear la cookie 'user':", error);
-      }
-    } else {
-      console.error("La cookie 'user' no está disponible.");
-    }
+      .catch((error) => {
+        console.error("Error al obtener tickets asignados:", error);
+      });
   }, []);
-
-  const handleReload = () => {
-    setReload((prev) => !prev); // Cambiar el estado para forzar la recarga
-  };
-
-  // Filtrar reparaciones para la tabla de todas las reparaciones
-  const filteredTodasReparaciones = todasReparaciones.filter((reparacion) =>
-    reparacion.ticket &&
-    typeof reparacion.ticket === "object" &&
-    reparacion.ticket.titulo.toLowerCase().includes(searchTodas.toLowerCase())
-  );
-
-  // Filtrar reparaciones para la tabla de reparaciones pendientes
-  const filteredReparacionesPendientes = reparacionesPendientes.filter((reparacion) =>
-    reparacion.ticket &&
-    typeof reparacion.ticket === "object" &&
-    reparacion.ticket.titulo.toLowerCase().includes(searchPendientes.toLowerCase())
-  );
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      {/* Encabezado */}
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Reparaciones</h2>
-        <div className="flex items-center space-x-2">
-          <Link href="/reparaciones/reparar/page">
-            <Button className="bg-primary hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Nueva Reparación
-            </Button>
-          </Link>
-        </div>
+      {/* Encabezado principal */}
+      <div className="space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight">Tickets Asignados</h2>
+        <p className="text-muted-foreground">
+          Mostrando los tickets devueltos por <code>/ticket/tecnico/3</code>
+        </p>
       </div>
 
-      {/* Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* Total de Reparaciones */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Reparaciones</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{todasReparaciones.length}</div>
-          </CardContent>
-        </Card>
-
-        {/* Reparaciones Pendientes */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Reparaciones Pendientes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{reparacionesPendientes.length}</div>
-          </CardContent>
-        </Card>
-
-        {/* Costo Total */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Costo Total</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${costoTotal.toFixed(2)}</div>
-          </CardContent>
-        </Card>
-
-        {/* Costo Promedio */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Costo Promedio</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${costoPromedio.toFixed(2)}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-
-      {/* Tabla de Reparaciones Pendientes */}
+      {/* Tabla de Tickets Asignados */}
       <Card>
         <CardHeader>
-          <CardTitle>Reparaciones Pendientes</CardTitle>
-          <CardDescription>Reparaciones asignadas al técnico logueado</CardDescription>
-          <Input
-            type="text"
-            placeholder="Buscar por título..."
-            value={searchPendientes}
-            onChange={(e) => setSearchPendientes(e.target.value)}
-            className="mt-2"
-          />
+          <CardTitle>Tickets Asignados al Técnico</CardTitle>
+          <CardDescription>Aquí se listan los tickets retornados por el endpoint</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Ticket</TableHead>
-                <TableHead>Costo Total</TableHead>
+                <TableHead>Título</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead>Fecha de Solución</TableHead>
                 <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredReparacionesPendientes.map((reparacion) => (
-                <TableRow key={reparacion.reparacion_id}>
-                  <TableCell>{reparacion.reparacion_id}</TableCell>
+              {tickets.map((ticket) => (
+                <TableRow key={ticket.ticket_id}>
+                  <TableCell>{ticket.ticket_id}</TableCell>
+                  <TableCell>{ticket.titulo}</TableCell>
+                  <TableCell>{ticket.descripcion}</TableCell>
                   <TableCell>
-                    {reparacion.fecha_reparacion
-                      ? new Date(reparacion.fecha_reparacion).toLocaleDateString("es-ES", {
+                    {ticket.fecha_solucion
+                      ? new Date(ticket.fecha_solucion).toLocaleDateString("es-ES", {
                           year: "numeric",
                           month: "long",
                           day: "numeric",
                         })
-                      : "Fecha no disponible"}
+                      : "Pendiente"}
                   </TableCell>
-                  <TableCell className="font-medium">
-                    {typeof reparacion.ticket === "object" && reparacion.ticket?.titulo
-                      ? reparacion.ticket.titulo
-                      : String(reparacion.ticket)}
-                  </TableCell>
-                  <TableCell>${reparacion.costo ? reparacion.costo.toFixed(2) : "0.00"}</TableCell>
+                  {/* Aquí añadimos la columna de "Acciones" */}
                   <TableCell>
-                    <Link
-                      href={`/reparaciones/reparar/${reparacion.reparacion_id}?ticket_id=${
-                        typeof reparacion.ticket === "object" ? reparacion.ticket.ticket_id : ""
-                      }`}
-                    >
-                      <Button size="sm" className="bg-primary hover:bg-primary/90">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Agregar Componentes
-                      </Button>
+                    <Link href={`/reparaciones/reparar/${ticket.ticket_id}`}>
+                      <Button>Registrar Reparación</Button>
                     </Link>
                   </TableCell>
                 </TableRow>
@@ -234,8 +99,3 @@ export default function ReparacionesPage() {
     </div>
   );
 }
-// Removed duplicate implementation of setReload
-function setReload(arg0: (prev: any) => boolean) {
-  throw new Error("Function not implemented.");
-}
-
