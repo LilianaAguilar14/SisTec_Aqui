@@ -1,5 +1,5 @@
 import axios from "axios";
 
-axios.defaults.baseURL = "http://localhost:3000"; // Tu URL base
+axios.defaults.baseURL = "back-soporte-tecnico-production.up.railway.app"; // Tu URL base
 
 export default axios;
