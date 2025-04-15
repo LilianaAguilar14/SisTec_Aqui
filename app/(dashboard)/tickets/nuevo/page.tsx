@@ -66,7 +66,7 @@ export default function NuevoTicketPage() {
       try {
         if (formData.usuario_cliente_id !== 0) {
           const response = await axios.get(
-            `http://localhost:3000/tipo-dispositivo/por-cliente/${formData.usuario_cliente_id}`
+            `/tipo-dispositivo/por-cliente/${formData.usuario_cliente_id}`
           );
           setDispositivos(response.data);
         }
@@ -99,7 +99,7 @@ export default function NuevoTicketPage() {
     setSuccess(false);
 
     try {
-      await axios.post("http://localhost:3000/ticket", {
+      await axios.post("/ticket", {
         titulo: formData.titulo,
         descripcion: formData.descripcion,
         estado: { estado_ticket_id: formData.estado_ticket_id },

@@ -32,6 +32,7 @@ export default function Dashboard() {
     const fetchTicketsActivos = async () => {
       try {
         const response = await axios.get("/ticket/conteo-estado");
+        console.log(response.data); // Verifica la respuesta de la API
         setTicketsActivos(response.data.activos);
         setTicketsCerrados(response.data.inactivos);
       } catch (err) {
@@ -41,6 +42,7 @@ export default function Dashboard() {
 
     fetchTicketsActivos();
   }, []);
+      console.log(ticketsActivos, ticketsCerrados); // Verifica los valores de los estados
 
   // Obtener el total de componentes en stock
   useEffect(() => {
@@ -148,13 +150,15 @@ function BarChart() {
         const response = await axios.get("/ticket/estado-por-mes");
         const rawData = response.data;
 
+        console.log("Datos recibidos de la API:", rawData); // Verifica los datos aquí
+
         // Mapear los datos para que coincidan con los meses
-        const formattedData = Array(12).fill({ abiertos: 0, cerrados: 0 }); // Inicializar con 12 meses
+        const formattedData = Array(12).fill({ abiertos: 0, cerrados: 0 });
         rawData.forEach(
           (item: { mes: number; abiertos: number; cerrados: number }) => {
             formattedData[item.mes - 1] = {
-              abiertos: item.abiertos,
-              cerrados: item.cerrados,
+              abiertos: item.abiertos || 0, // Asegúrate de que no sea undefined
+              cerrados: item.cerrados || 0, // Asegúrate de que no sea undefined
             };
           }
         );
@@ -169,7 +173,7 @@ function BarChart() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Leyenda */}
       <div className="flex justify-center gap-6 mb-4">
         <div className="flex items-center gap-2">

@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import Cookies from "js-cookie";
+import axios from "../../app/axiosConfig"; // Asegúrate de que esta ruta sea correcta
 
 interface Comentario {
   comentario_id: number;
@@ -41,16 +42,15 @@ const ComentariosModal: React.FC<ComentariosModalProps> = ({
   // ---------------------------------------
   // Función para cargar comentarios
   // ---------------------------------------
-  const cargarComentarios = () => {
-    fetch(`http://localhost:3000/comentario-ticket/${ticketId}`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Error al cargar comentarios: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data: Comentario[]) => setComentarios(data))
-      .catch((error) => console.error("Error al cargar comentarios:", error));
+  const cargarComentarios = async () => {
+    try {
+      const response = await axios.get(
+        `/comentario-ticket/${ticketId}`
+      );
+      setComentarios(response.data);
+    } catch (error) {
+      console.error("Error al cargar comentarios:", error);
+    }
   };
 
   // Cuando se abre el modal, cargamos la lista
@@ -63,38 +63,31 @@ const ComentariosModal: React.FC<ComentariosModalProps> = ({
   // ---------------------------------------
   // Agregar un nuevo comentario
   // ---------------------------------------
-  const handleAgregarComentario = () => {
+  const handleAgregarComentario = async () => {
     if (!nuevoComentario.trim()) return;
 
     setLoading(true);
 
-    fetch("http://localhost:3000/comentario-ticket", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    try {
+      const comentarioData = {
         contenido: nuevoComentario,
         ticket: { ticket_id: ticketId },
         usuario: { usuario_id: userId },
-      }),
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(`Error al agregar comentario: ${res.status} - ${errorText}`);
-        }
-        return res.json();
-      })
-      .then(() => {
-        // Limpiamos el textarea
-        setNuevoComentario("");
-        // Volvemos a recargar la lista completa para asegurar 
-        // que las fechas vengan formateadas del servidor
-        cargarComentarios();
-      })
-      .catch((error) => console.error("Error al agregar comentario:", error))
-      .finally(() => setLoading(false));
+      };
+
+      await axios.post("/comentario-ticket", comentarioData);
+
+      // Limpiamos el textarea
+      setNuevoComentario("");
+
+      // Volvemos a recargar la lista completa para asegurar
+      // que las fechas vengan formateadas del servidor
+      cargarComentarios();
+    } catch (error) {
+      console.error("Error al agregar comentario:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

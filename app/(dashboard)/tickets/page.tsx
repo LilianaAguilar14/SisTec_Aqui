@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
+import axios from "../../axiosConfig"; // Asegúrate de que esta ruta sea correcta
 import ComentariosModal from "@/components/dashboard/Comentarios"; // Importa el modal
 
 function getEstadoClassName(estadoStr: string) {
@@ -86,20 +87,22 @@ export default function TicketsPage() {
     }
 
     // 2. Definir el endpoint según el rol del usuario
-    let endpoint = "http://localhost:3000/ticket"; // Por defecto todos los tickets
+    let endpoint = "/ticket"; // Por defecto todos los tickets
     if (roleId === 3 && userId) {
       // Si es cliente, usar la ruta que devuelve solo los tickets del cliente
-      endpoint = `http://localhost:3000/ticket/cliente/${userId}`;
+      endpoint = `/ticket/cliente/${userId}`;
     }
     if (roleId === 2) {
       // Si es técnico, usar la ruta que devuelve solo los tickets asignados al técnico
-      endpoint = `http://localhost:3000/ticket/tecnico/${userId}`;
+      endpoint = `/ticket/tecnico/${userId}`;
     }
 
-    // 3. Llamada a la API
-    fetch(endpoint)
-      .then((res) => res.json())
-      .then((data) => {
+    // 3. Llamada a la API con axios
+    axios
+      .get(endpoint)
+      .then((response) => {
+        const data = response.data;
+
         // Se mapean los tickets para la vista
         const mappedTickets = data.map((ticket: any) => ({
           id: ticket.ticket_id,
@@ -186,7 +189,7 @@ export default function TicketsPage() {
         </div>
       </div>
 
-      {/* Tarjetas de resumen (podrías ocultarlas si es cliente, si así lo deseas) */}
+      {/* Tarjetas de resumen */}
       {roleId !== 3 && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
