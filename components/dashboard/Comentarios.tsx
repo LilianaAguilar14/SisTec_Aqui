@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import Cookies from "js-cookie";
 
 interface Comentario {
   comentario_id: number;
@@ -33,21 +34,40 @@ const ComentariosModal: React.FC<ComentariosModalProps> = ({
   const [nuevoComentario, setNuevoComentario] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Fetch comentarios del ticket
+  // Obtenemos el usuario en sesión
+  const user = JSON.parse(Cookies.get("user") || "{}");
+  const userId = user.usuario_id;
+
+  // ---------------------------------------
+  // Función para cargar comentarios
+  // ---------------------------------------
+  const cargarComentarios = () => {
+    fetch(`http://localhost:3000/comentario-ticket/${ticketId}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Error al cargar comentarios: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data: Comentario[]) => setComentarios(data))
+      .catch((error) => console.error("Error al cargar comentarios:", error));
+  };
+
+  // Cuando se abre el modal, cargamos la lista
   useEffect(() => {
     if (isOpen) {
-      fetch(`http://localhost:3000/comentario-ticket/${ticketId}`)
-        .then((res) => res.json())
-        .then((data) => setComentarios(data))
-        .catch((error) => console.error("Error al cargar comentarios:", error));
+      cargarComentarios();
     }
   }, [isOpen, ticketId]);
 
+  // ---------------------------------------
   // Agregar un nuevo comentario
+  // ---------------------------------------
   const handleAgregarComentario = () => {
     if (!nuevoComentario.trim()) return;
 
     setLoading(true);
+
     fetch("http://localhost:3000/comentario-ticket", {
       method: "POST",
       headers: {
@@ -56,13 +76,22 @@ const ComentariosModal: React.FC<ComentariosModalProps> = ({
       body: JSON.stringify({
         contenido: nuevoComentario,
         ticket: { ticket_id: ticketId },
-        usuario: { usuario_id: 1 }, // Reemplaza con el ID del usuario actual
+        usuario: { usuario_id: userId },
       }),
     })
-      .then((res) => res.json())
-      .then((comentario) => {
-        setComentarios((prev) => [...prev, comentario]);
+      .then(async (res) => {
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Error al agregar comentario: ${res.status} - ${errorText}`);
+        }
+        return res.json();
+      })
+      .then(() => {
+        // Limpiamos el textarea
         setNuevoComentario("");
+        // Volvemos a recargar la lista completa para asegurar 
+        // que las fechas vengan formateadas del servidor
+        cargarComentarios();
       })
       .catch((error) => console.error("Error al agregar comentario:", error))
       .finally(() => setLoading(false));
@@ -75,8 +104,8 @@ const ComentariosModal: React.FC<ComentariosModalProps> = ({
           <DialogTitle>Comentarios del Ticket #{ticketId}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          {/* Lista de comentarios */}
-          <div className="space-y-2">
+          {/* Lista de comentarios con un contenedor de altura fija y scroll */}
+          <div className="space-y-2 max-h-60 overflow-y-auto">
             {comentarios.length > 0 ? (
               comentarios.map((comentario) => (
                 <div
@@ -88,7 +117,7 @@ const ComentariosModal: React.FC<ComentariosModalProps> = ({
                   </p>
                   <p>{comentario.contenido}</p>
                   <p className="text-xs text-gray-500">
-                    {new Date(comentario.fecha_comentario).toLocaleDateString()}
+                    {new Date(comentario.fecha_comentario).toLocaleString()}
                   </p>
                 </div>
               ))
