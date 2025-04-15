@@ -64,9 +64,7 @@ export default function DispositivosPage() {
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:3000/tipo-dispositivo/por-categoria"
-        );
+        const response = await axios.get("/tipo-dispositivo/por-categoria");
         setCategorias(response.data); // Asume que el backend devuelve un array de categorías
       } catch (err) {
         setError("Error al obtener las categorías");

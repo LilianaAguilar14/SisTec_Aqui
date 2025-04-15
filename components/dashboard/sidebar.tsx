@@ -36,25 +36,9 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
 
   return (
     <div className={cn("pb-12", className)}>
-      <div className="space-y-4 py-4">
+      <div className="space-y-4 ">
         {/* Encabezado */}
-        <div className="px-4 py-2">
-          <Link href="/estadisticas" className="flex items-center gap-2">
-            <div className="p-4 border-b flex items-center gap-2">
-              <div className="w-8 h-8">
-                <Image
-                  src="/logo.png"
-                  alt="TechFix Logo"
-                  width={32}
-                  height={32}
-                />
-              </div>
-              <span className="font-bold text-xl bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">
-                SisTec
-              </span>
-            </div>
-          </Link>
-        </div>
+        <div className="px-4 "></div>
 
         {(roleId === 1 || roleId === 2 || roleId === 3) && (
           <div className="px-4 py-2">
@@ -65,7 +49,9 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
               {(roleId === 1 || roleId === 2 || roleId === 3) && (
                 <Link href="/estadisticas">
                   <Button
-                    variant={pathname === "/estadisticas" ? "secondary" : "ghost"}
+                    variant={
+                      pathname === "/estadisticas" ? "secondary" : "ghost"
+                    }
                     className="w-full justify-start"
                   >
                     <BarChart3 className="mr-2 h-4 w-4" />
@@ -90,7 +76,9 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
               {(roleId === 1 || roleId === 2) && (
                 <Link href="/reparaciones">
                   <Button
-                    variant={pathname === "/reparaciones" ? "secondary" : "ghost"}
+                    variant={
+                      pathname === "/reparaciones" ? "secondary" : "ghost"
+                    }
                     className="w-full justify-start"
                   >
                     <ClipboardList className="mr-2 h-4 w-4" />
@@ -104,7 +92,7 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
 
         {/* Sección Inventario */}
         {/* Ejemplo: disponible solo para rol 1 y 2 */}
-        {(roleId === 1) && (
+        {roleId === 1 && (
           <div className="px-4 py-2">
             <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
               Inventario
@@ -156,15 +144,6 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
                 >
                   <Users className="mr-2 h-4 w-4" />
                   Usuarios
-                </Button>
-              </Link>
-              <Link href="/configuracion">
-                <Button
-                  variant={pathname === "/configuracion" ? "secondary" : "ghost"}
-                  className="w-full justify-start"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Configuración
                 </Button>
               </Link>
             </div>

@@ -18,9 +18,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CheckCircle, Clock, Plus, Search, Ticket, XCircle } from "lucide-react";
+import {
+  CheckCircle,
+  Clock,
+  Plus,
+  Search,
+  Ticket,
+  XCircle,
+} from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
+import ComentariosModal from "@/components/dashboard/Comentarios"; // Importa el modal
 
 function getEstadoClassName(estadoStr: string) {
   switch (estadoStr) {
@@ -44,17 +52,29 @@ export default function TicketsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [nombreCompleto, setNombreCompleto] = useState("");
+  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const user = JSON.parse(Cookies.get("user") || "{}");
-  
-    const roleId = user?.rol?.rol_id;
+  const handleOpenModal = (ticketId: number) => {
+    setSelectedTicketId(ticketId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedTicketId(null);
+    setIsModalOpen(false);
+  };
+
+  // Leemos la cookie "user"
+  const rawUserCookie = Cookies.get("user") || "{}";
+  const user = JSON.parse(rawUserCookie);
+  const roleId = user?.rol?.rol_id; // Por ejemplo: 1 = Admin, 2 = Técnico, 3 = Cliente
+  const userId = user?.usuario_id; // ID del usuario logueado
 
   useEffect(() => {
-    // 1. Leer la cookie "user" y parsear para extraer nombre y apellido
-    const rawUserCookie = Cookies.get("user");
+    // 1. Parsear la cookie "user" para extraer el nombre y apellido
     if (rawUserCookie) {
       try {
-        // Si la cookie está URL-encodeada y es un JSON, decodificar y parsear
         const decoded = decodeURIComponent(rawUserCookie);
         const userObj = JSON.parse(decoded);
         if (userObj.nombre && userObj.apellido) {
@@ -65,38 +85,55 @@ export default function TicketsPage() {
       }
     }
 
-    // 2. Llamada a la API /ticket
-    fetch("http://localhost:3000/ticket")
+    // 2. Definir el endpoint según el rol del usuario
+    let endpoint = "http://localhost:3000/ticket"; // Por defecto todos los tickets
+    if (roleId === 3 && userId) {
+      // Si es cliente, usar la ruta que devuelve solo los tickets del cliente
+      endpoint = `http://localhost:3000/ticket/cliente/${userId}`;
+    }
+    if (roleId === 2) {
+      // Si es técnico, usar la ruta que devuelve solo los tickets asignados al técnico
+      endpoint = `http://localhost:3000/ticket/tecnico/${userId}`;
+    }
+
+    // 3. Llamada a la API
+    fetch(endpoint)
       .then((res) => res.json())
       .then((data) => {
-        // Mapeo de tickets: se espera que el backend devuelva en cada ticket
-        // un objeto "cliente" con propiedades "nombre" y "apellido".
+        // Se mapean los tickets para la vista
         const mappedTickets = data.map((ticket: any) => ({
           id: ticket.ticket_id,
           titulo: ticket.titulo,
           descripcion: ticket.descripcion,
           diagnostico: ticket.diagnostico,
           solucion: ticket.solucion,
-          fechaRegistro: new Date(ticket.fecha_registro).toISOString().split("T")[0],
-          fechaSolucion: ticket.fecha_solucion ? new Date(ticket.fecha_solucion).toISOString().split("T")[0] : "-",
+          fechaRegistro: new Date(ticket.fecha_registro)
+            .toISOString()
+            .split("T")[0],
+          fechaSolucion: ticket.fecha_solucion
+            ? new Date(ticket.fecha_solucion).toISOString().split("T")[0]
+            : "-",
           categoria: ticket.categoria ? ticket.categoria.categoria : "N/A",
           prioridad: ticket.prioridad ? ticket.prioridad.prioridad : "N/A",
           dispositivo: ticket.dispositivo ? ticket.dispositivo.nombre : "N/A",
-          tecnico: ticket.tecnico ? `${ticket.tecnico.nombre} ${ticket.tecnico.apellido}` : "N/A",
-          // Aquí se espera que el backend devuelva "cliente" con nombre y apellido.
-          cliente: ticket.cliente 
-            ? `${ticket.cliente.nombre} ${ticket.cliente.apellido}` 
+          tecnico: ticket.tecnico
+            ? `${ticket.tecnico.nombre} ${ticket.tecnico.apellido}`
+            : "N/A",
+          cliente: ticket.cliente
+            ? `${ticket.cliente.nombre} ${ticket.cliente.apellido}`
             : "N/A",
           estadoText: ticket.estado ? ticket.estado.estado : "Sin estado",
-          reparaciones: ticket.reparaciones?.map((rep: any) => ({
-            id: rep.reparacion_id,
-            fecha: rep.fecha_reparacion,
-          })) ?? [],
-          comentarios: ticket.comentarios?.map((com: any) => ({
-            id: com.comentario_id,
-            contenido: com.contenido,
-            fecha: com.fecha_comentario,
-          })) ?? [],
+          reparaciones:
+            ticket.reparaciones?.map((rep: any) => ({
+              id: rep.reparacion_id,
+              fecha: rep.fecha_reparacion,
+            })) ?? [],
+          comentarios:
+            ticket.comentarios?.map((com: any) => ({
+              id: com.comentario_id,
+              contenido: com.contenido,
+              fecha: com.fecha_comentario,
+            })) ?? [],
           cambiosEstado: ticket.cambiosEstado ? ticket.cambiosEstado.length : 0,
         }));
 
@@ -107,7 +144,7 @@ export default function TicketsPage() {
         console.error("Error al obtener los tickets:", error);
         setLoading(false);
       });
-  }, []);
+  }, [rawUserCookie, roleId, userId]);
 
   // Filtrado de tickets en tiempo real
   const filteredTickets = tickets.filter((ticket) => {
@@ -149,61 +186,76 @@ export default function TicketsPage() {
         </div>
       </div>
 
-      {/* Tarjetas de resumen */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Tickets</CardTitle>
-            <Ticket className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{tickets.length}</div>
-          </CardContent>
-        </Card>
+      {/* Tarjetas de resumen (podrías ocultarlas si es cliente, si así lo deseas) */}
+      {roleId !== 3 && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total de Tickets
+              </CardTitle>
+              <Ticket className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{tickets.length}</div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tickets "Abierto"</CardTitle>
-            <XCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {tickets.filter((t) => t.estadoText === "Abierto").length}
-            </div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Tickets "Abierto"
+              </CardTitle>
+              <XCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {tickets.filter((t) => t.estadoText === "Abierto").length}
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tickets "En progreso"</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {tickets.filter((t) => t.estadoText === "En progreso").length}
-            </div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Tickets "En progreso"
+              </CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {tickets.filter((t) => t.estadoText === "En progreso").length}
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tickets "Resuelto"</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {tickets.filter((t) => t.estadoText === "Resuelto").length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Tickets "Resuelto"
+              </CardTitle>
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {tickets.filter((t) => t.estadoText === "Resuelto").length}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Buscador */}
       <Card>
         <CardHeader>
           <CardTitle>Buscar Tickets</CardTitle>
-          <CardDescription>Utiliza el buscador para filtrar los tickets</CardDescription>
-          <form onSubmit={handleSearch} className="flex w-full max-w-sm items-center space-x-2 mt-2">
+          <CardDescription>
+            Utiliza el buscador para filtrar los tickets
+          </CardDescription>
+          <form
+            onSubmit={handleSearch}
+            className="flex w-full max-w-sm items-center space-x-2 mt-2"
+          >
             <Input
               type="search"
               placeholder="Buscar ticket..."
@@ -266,40 +318,45 @@ export default function TicketsPage() {
                       <TableCell>{ticket.tecnico}</TableCell>
                       <TableCell>{ticket.cliente}</TableCell>
                       <TableCell>
-                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${estadoClassName}`}>
+                        <span
+                          className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${estadoClassName}`}
+                        >
                           {ticket.estadoText}
                         </span>
                       </TableCell>
                       <TableCell>
-                        {ticket.comentarios.length === 0
-                          ? "N/A"
-                          : ticket.comentarios.map((com: any) => (
-                              <div key={com.id} className="mb-2">
-                                <p>{com.contenido}</p>
-                                <p className="text-xs text-gray-500">
-                                  {new Date(com.fecha).toLocaleDateString()}
-                                </p>
-                              </div>
-                            ))}
+                        <Button
+                          size="sm"
+                          className="bg-gray-500 hover:bg-gray-600"
+                          onClick={() => handleOpenModal(ticket.id)}
+                        >
+                          Ver Comentarios
+                        </Button>
                       </TableCell>
-                    {roleId === 1 && (
-                      <TableCell>
-                        <Link href={`/tickets/gestionAdmin/${ticket.id}`}>
-                          <Button size="sm" className="bg-blue-500 hover:bg-blue-600">
-                            Gestionar
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    )}
-                    {roleId === 2 && (
-                      <TableCell>
-                        <Link href={`/tickets/gestionTecnico/${ticket.id}`}>
-                          <Button size="sm" className="bg-green-500 hover:bg-green-600">
-                            Gestionar
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    )}
+                      {roleId === 1 && (
+                        <TableCell>
+                          <Link href={`/tickets/gestionAdmin/${ticket.id}`}>
+                            <Button
+                              size="sm"
+                              className="bg-blue-500 hover:bg-blue-600"
+                            >
+                              Gestionar
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      )}
+                      {roleId === 2 && (
+                        <TableCell>
+                          <Link href={`/tickets/gestionTecnico/${ticket.id}`}>
+                            <Button
+                              size="sm"
+                              className="bg-green-500 hover:bg-green-600"
+                            >
+                              Gestionar
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      )}
                     </TableRow>
                   );
                 })}
@@ -308,6 +365,14 @@ export default function TicketsPage() {
           </div>
         </CardContent>
       </Card>
+      {/* Modal de comentarios */}
+      {selectedTicketId && (
+        <ComentariosModal
+          ticketId={selectedTicketId}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }

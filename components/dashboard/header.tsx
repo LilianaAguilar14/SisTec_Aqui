@@ -9,6 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
+import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Bell, Menu, Search } from "lucide-react";
@@ -30,6 +32,21 @@ export function DashboardHeader() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <Sheet>
+          <Link href="/estadisticas" className="flex items-center gap-2">
+            <div className="p-4 border-b flex items-center gap-2">
+              <div className="w-8 h-8">
+                <Image
+                  src="/logo.png"
+                  alt="TechFix Logo"
+                  width={32}
+                  height={32}
+                />
+              </div>
+              <span className="font-bold text-xl bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">
+                SisTec
+              </span>
+            </div>
+          </Link>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon" className="mr-2 md:hidden">
               <Menu className="h-5 w-5" />
@@ -41,25 +58,15 @@ export function DashboardHeader() {
           </SheetContent>
         </Sheet>
         <div className="flex w-full items-center gap-4 md:gap-8">
-          <div className="relative flex-1 md:grow-0 md:basis-1/3">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Buscar..."
-              className="w-full rounded-lg bg-background pl-8 md:w-auto"
-            />
-          </div>
+          <div className="relative flex-1 md:grow-0 md:basis-1/3"></div>
           <div className="flex flex-1 items-center justify-end gap-4">
             <ModeToggle />
-            <Button variant="outline" size="icon">
-              <Bell className="h-5 w-5" />
-              <span className="sr-only">Notificaciones</span>
-            </Button>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/placeholder.svg" alt="Avatar" />
+                    <AvatarImage src="/BxsUser.svg" alt="Avatar" />
                     <AvatarFallback>AD</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -67,8 +74,6 @@ export function DashboardHeader() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Perfil</DropdownMenuItem>
-                <DropdownMenuItem>Configuración</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   Cerrar sesión

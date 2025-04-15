@@ -31,7 +31,7 @@ export default function RegistroPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    rol: "",
+    rol: "cliente", // Rol por defecto establecido como "cliente"
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -149,25 +149,7 @@ export default function RegistroPage() {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="rol">Rol</Label>
-                <Select
-                  name="rol"
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, rol: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un rol" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tecnico">Técnico</SelectItem>
-                    <SelectItem value="cliente">Cliente</SelectItem>
-                    <SelectItem value="admin">Administrador</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {error && <p className="text-red-500">{error}</p>}
+                {error && <p className="text-red-500">{error}</p>}
               {success && <p className="text-green-500">¡Registro exitoso!</p>}
               <Button
                 type="submit"

@@ -35,7 +35,7 @@ export default function TicketsAsignadosPage() {
   // Cargar tickets asignados al técnico
   useEffect(() => {
     axios
-      .get(`http://localhost:3000/ticket/tecnico/${userId}`)
+      .get(`/ticket/tecnico/${userId}`)
       .then((response) => {
         console.log("Tickets asignados:", response.data);
         setTickets(response.data);
