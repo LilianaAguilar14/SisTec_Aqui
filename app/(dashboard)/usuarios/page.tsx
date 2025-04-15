@@ -2,9 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Plus, Search, Users } from "lucide-react";
 import Link from "next/link";
 import axios from "../../axiosConfig";
@@ -33,7 +46,7 @@ export default function UsuariosPage() {
     // Lógica para obtener los datos de usuarios
     async function fetchUsuarios() {
       try {
-        const response = await axios.get("http://localhost:3000/usuarios");
+        const response = await axios.get("/usuarios");
         setUsuarios(response.data); // Actualiza el estado con los datos obtenidos
       } catch (err) {
         console.error(err);
@@ -47,9 +60,9 @@ export default function UsuariosPage() {
     async function fetchConteos() {
       try {
         const [adminRes, tecnicoRes, clienteRes] = await Promise.all([
-          axios.get("http://localhost:3000/usuarios/conteo/administradores"),
-          axios.get("http://localhost:3000/usuarios/conteo/tecnicos"),
-          axios.get("http://localhost:3000/usuarios/conteo/clientes"),
+          axios.get("/usuarios/conteo/administradores"),
+          axios.get("/usuarios/conteo/tecnicos"),
+          axios.get("/usuarios/conteo/clientes"),
         ]);
 
         setConteoAdministradores(adminRes.data.total || 0);
@@ -73,10 +86,10 @@ export default function UsuariosPage() {
     try {
       const url =
         rol === "administradores"
-          ? "http://localhost:3000/usuarios/administradores"
+          ? "/usuarios/administradores"
           : rol === "tecnicos"
-          ? "http://localhost:3000/usuarios/tecnicos"
-          : "http://localhost:3000/usuarios/clientes";
+          ? "/usuarios/tecnicos"
+          : "/usuarios/clientes";
 
       const response = await axios.get(url);
       setUsuarios(response.data); // Actualiza la tabla con los usuarios filtrados
@@ -94,7 +107,7 @@ export default function UsuariosPage() {
     setFiltroRol(null);
 
     try {
-      const response = await axios.get("http://localhost:3000/usuarios");
+      const response = await axios.get("/usuarios");
       setUsuarios(response.data); // Muestra todos los usuarios
     } catch (err) {
       console.error(err);
@@ -128,12 +141,16 @@ export default function UsuariosPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Administradores</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Administradores
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{conteoAdministradores}</div>
-            <p className="text-xs text-muted-foreground">Usuarios con rol de administrador</p>
+            <p className="text-xs text-muted-foreground">
+              Usuarios con rol de administrador
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -143,7 +160,9 @@ export default function UsuariosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{conteoTecnicos}</div>
-            <p className="text-xs text-muted-foreground">Usuarios con rol de técnico</p>
+            <p className="text-xs text-muted-foreground">
+              Usuarios con rol de técnico
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -153,7 +172,9 @@ export default function UsuariosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{conteoClientes}</div>
-            <p className="text-xs text-muted-foreground">Usuarios con rol de cliente</p>
+            <p className="text-xs text-muted-foreground">
+              Usuarios con rol de cliente
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -192,7 +213,11 @@ export default function UsuariosPage() {
               : "Mostrando todos los usuarios"}
           </CardDescription>
           <div className="flex w-full max-w-sm items-center space-x-2">
-            <Input type="search" placeholder="Buscar usuario..." className="h-9" />
+            <Input
+              type="search"
+              placeholder="Buscar usuario..."
+              className="h-9"
+            />
             <Button type="submit" size="sm" className="h-9 px-4 py-2">
               <Search className="h-4 w-4" />
               <span className="sr-only">Buscar</span>
@@ -214,7 +239,9 @@ export default function UsuariosPage() {
               {usuarios.map((usuario) => (
                 <TableRow key={usuario.usuario_id}>
                   <TableCell>{usuario.usuario_id}</TableCell>
-                  <TableCell className="font-medium">{usuario.nombre}</TableCell>
+                  <TableCell className="font-medium">
+                    {usuario.nombre}
+                  </TableCell>
                   <TableCell>{usuario.apellido}</TableCell>
                   <TableCell>{usuario.email}</TableCell>
                   <TableCell>{usuario.rol.rol}</TableCell>
@@ -227,4 +254,3 @@ export default function UsuariosPage() {
     </div>
   );
 }
-
