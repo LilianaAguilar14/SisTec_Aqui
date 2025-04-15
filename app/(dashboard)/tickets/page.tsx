@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
+import ComentariosModal from "@/components/dashboard/Comentarios"; // Importa el modal
 
 function getEstadoClassName(estadoStr: string) {
   switch (estadoStr) {
@@ -51,6 +52,18 @@ export default function TicketsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [nombreCompleto, setNombreCompleto] = useState("");
+  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenModal = (ticketId: number) => {
+    setSelectedTicketId(ticketId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedTicketId(null);
+    setIsModalOpen(false);
+  };
 
   // Leemos la cookie "user"
   const rawUserCookie = Cookies.get("user") || "{}";
@@ -77,6 +90,10 @@ export default function TicketsPage() {
     if (roleId === 3 && userId) {
       // Si es cliente, usar la ruta que devuelve solo los tickets del cliente
       endpoint = `http://localhost:3000/ticket/cliente/${userId}`;
+    }
+    if (roleId === 2) {
+      // Si es técnico, usar la ruta que devuelve solo los tickets asignados al técnico
+      endpoint = `http://localhost:3000/ticket/tecnico/${userId}`;
     }
 
     // 3. Llamada a la API
@@ -308,16 +325,13 @@ export default function TicketsPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        {ticket.comentarios.length === 0
-                          ? "N/A"
-                          : ticket.comentarios.map((com: any) => (
-                              <div key={com.id} className="mb-2">
-                                <p>{com.contenido}</p>
-                                <p className="text-xs text-gray-500">
-                                  {new Date(com.fecha).toLocaleDateString()}
-                                </p>
-                              </div>
-                            ))}
+                        <Button
+                          size="sm"
+                          className="bg-gray-500 hover:bg-gray-600"
+                          onClick={() => handleOpenModal(ticket.id)}
+                        >
+                          Ver Comentarios
+                        </Button>
                       </TableCell>
                       {roleId === 1 && (
                         <TableCell>
@@ -351,6 +365,14 @@ export default function TicketsPage() {
           </div>
         </CardContent>
       </Card>
+      {/* Modal de comentarios */}
+      {selectedTicketId && (
+        <ComentariosModal
+          ticketId={selectedTicketId}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }
